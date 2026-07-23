@@ -1,0 +1,29 @@
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Access Denied";
+}
+
+<div class="text-center">
+    <div class="mb-3 text-danger">
+        <i class="fas fa-ban fa-3x"></i>
+    </div>
+    <h4 class="fw-bold text-dark mb-2">Access Denied</h4>
+    <p class="text-muted small mb-4">
+        You do not have the required permissions or credentials to access this system console module.
+    </p>
+    
+    <div class="d-flex flex-column gap-2">
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a href="/Account/Logout" class="btn btn-outline-danger w-100 py-2.5">
+                <i class="fas fa-sign-out-alt me-1"></i> Sign In to Another Account
+            </a>
+        }
+        else
+        {
+            <a href="/Account/Login" class="btn btn-primary-custom w-100 py-2.5">
+                <i class="fas fa-sign-in-alt me-1"></i> Sign In
+            </a>
+        }
+    </div>
+</div>

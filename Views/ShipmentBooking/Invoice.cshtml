@@ -1,0 +1,141 @@
+@model CargoCaptain.Models.FreightInvoice
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freight Invoice - INV-@Model.invoiceId</title>
+    
+    <!-- Bootstrap 5 CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #000000;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+            padding: 20px;
+        }
+        .invoice-header {
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .invoice-title {
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .print-btn-bar {
+            background-color: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 10px 20px;
+            margin: -20px -20px 20px -20px;
+        }
+        @@media print {
+            .print-btn-bar {
+                display: none;
+            }
+            body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Print Control Bar -->
+    <div class="print-btn-bar d-flex justify-content-between align-items-center">
+        <span class="fw-bold text-dark">CargoCaptain Freight Invoice printable View</span>
+        <button onclick="window.print();" class="btn btn-primary btn-sm px-3"><i class="fas fa-print"></i> Print Document</button>
+    </div>
+
+    <div class="container px-0">
+        <!-- Document Header -->
+        <div class="invoice-header d-flex justify-content-between align-items-end">
+            <div>
+                <h1 class="invoice-title mb-0">Freight Invoice</h1>
+                <div class="text-muted">CargoCaptain Freight & Demurrage Billing</div>
+            </div>
+            <div class="text-end">
+                <div><strong>Invoice Reference:</strong> INV-@Model.invoiceId</div>
+                <div><strong>Date of Issue:</strong> @DateTime.UtcNow.ToString("yyyy-MM-dd")</div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <!-- Payer/Shipper details -->
+            <div class="col-6">
+                <div class="border p-3 h-100">
+                    <div class="fw-bold text-uppercase small text-muted border-bottom pb-1 mb-2">Billed To (Shipper)</div>
+                    <strong>@Model.ShipmentBooking?.shipperName</strong>
+                    <div class="text-muted mt-1">CargoCaptain Cargo Shipping Account</div>
+                </div>
+            </div>
+            <!-- Booking details Reference -->
+            <div class="col-6">
+                <div class="border p-3 h-100">
+                    <div class="fw-bold text-uppercase small text-muted border-bottom pb-1 mb-2">Associated Reference</div>
+                    <div><strong>Booking Number:</strong> @Model.ShipmentBooking?.bookingNumber</div>
+                    <div><strong>Origin Port:</strong> @Model.ShipmentBooking?.originPort</div>
+                    <div><strong>Destination Port:</strong> @Model.ShipmentBooking?.destinationPort</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ledger Breakdown -->
+        <div class="border rounded mb-4">
+            <div class="bg-light p-2 border-bottom fw-bold text-uppercase small text-dark">Charges Breakdown Ledger</div>
+            <table class="table table-bordered mb-0" style="font-size: 12px;">
+                <thead class="table-light">
+                    <tr>
+                        <th>Billing Ledger Charge Item</th>
+                        <th class="text-end">Amount Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Ocean freight Carriage Charges</td>
+                        <td class="text-end">@Model.currency @Model.freightCharges.ToString("N2")</td>
+                    </tr>
+                    <tr>
+                        <td>Terminal Surcharge Additions</td>
+                        <td class="text-end">@Model.currency @Model.surchargeAmount.ToString("N2")</td>
+                    </tr>
+                    <tr>
+                        <td>Port Demurrage Penalty Additions</td>
+                        <td class="text-end">@Model.currency @Model.demurrageAmount.ToString("N2")</td>
+                    </tr>
+                    <tr class="table-dark">
+                        <td class="fw-bold">Total Amount Due</td>
+                        <td class="text-end fw-bold">@Model.currency @Model.totalAmount.ToString("N2")</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-6">
+                <div class="border p-3 small text-muted">
+                    <strong>Payment Instructions:</strong> All freight and terminal invoice lines are billed according to carrier tariffs. Payments are settled upon presentation of this ledger.
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="border p-3 text-center d-flex flex-column justify-content-between" style="min-height: 80px;">
+                    <div class="small fw-bold">Invoice Status</div>
+                    <div class="fw-bold text-success mt-2">@Model.invoiceStatus</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

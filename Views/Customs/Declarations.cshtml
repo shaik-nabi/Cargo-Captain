@@ -1,0 +1,164 @@
+@model IEnumerable<CargoCaptain.ViewModels.CustomsEntryViewModel>
+@using CargoCaptain.Enums
+
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "Declarations Log";
+    var activeFilter = ViewBag.ActiveFilter as string ?? "all";
+}
+
+<!-- Breadcrumbs Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Console</a></li>
+                <li class="breadcrumb-item"><a href="/Customs" class="text-decoration-none">Customs Console</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Declarations Log</li>
+            </ol>
+        </nav>
+        <h2 class="h3 mb-0 fw-bold text-dark">Declarations Ledger</h2>
+    </div>
+</div>
+
+<!-- Filtering Bar -->
+<div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 border rounded-3 shadow-sm">
+    <div class="d-flex gap-2">
+        <a href="/Customs/Declarations?filter=all" class="btn btn-sm @(activeFilter == "all" ? "btn-primary" : "btn-light border") px-3">All Records</a>
+        <a href="/Customs/Declarations?filter=pending" class="btn btn-sm @(activeFilter == "pending" ? "btn-warning text-white" : "btn-light border") px-3">Pending Review / Action</a>
+        <a href="/Customs/Declarations?filter=completed" class="btn btn-sm @(activeFilter == "completed" ? "btn-success" : "btn-light border") px-3">Completed Clearance</a>
+    </div>
+    <span class="small text-muted">Total records displayed: <strong>@Model.Count()</strong></span>
+</div>
+
+<!-- Ledger Grid -->
+<div class="premium-table-card shadow-sm">
+    @if (Model != null && Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
+                <thead class="table-light">
+                    <tr>
+                        <th>Ref ID</th>
+                        <th>Booking Number</th>
+                        <th>Shipper</th>
+                        <th>Customs Documents</th>
+                        <th>Particulars / Duty</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var entry in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold text-dark">
+                                @if (entry.IsFiledDeclaration)
+                                {
+                                    <span class="text-primary">DEC-@entry.DeclarationId</span>
+                                }
+                                else
+                                {
+                                    <span>@entry.BookingNumber</span>
+                                }
+                            </td>
+                            <td class="text-primary fw-semibold">@entry.BookingNumber</td>
+                            <td>@entry.ShipperName</td>
+                            <td>
+                                @if (entry.Documents.Any())
+                                {
+                                    <div class="d-flex flex-column gap-1">
+                                        @foreach (var doc in entry.Documents)
+                                        {
+                                            <a href="/uploads/bookings/@entry.BookingId/@doc.GuidName" target="_blank" class="text-decoration-none small text-dark d-inline-flex align-items-center gap-1" download="@doc.OriginalName" title="Download @doc.OriginalName">
+                                                <i class="far fa-file-pdf text-danger"></i>
+                                                <span class="text-truncate" style="max-width: 140px;">@doc.OriginalName</span>
+                                                <i class="fas fa-download text-muted ms-1" style="font-size: 0.75rem;"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning bg-opacity-10 text-warning p-2"><i class="far fa-file me-1"></i> No Documents</span>
+                                }
+                            </td>
+                            <td>
+                                @if (entry.IsFiledDeclaration)
+                                {
+                                    <div><code>@entry.HsCode</code></div>
+                                    <div class="small fw-bold text-primary">$@entry.CalculatedDuty.ToString("N2") Duty</div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">@entry.ContainerCount Container(s)</span>
+                                }
+                            </td>
+                            <td>
+                                @if (entry.IsFiledDeclaration)
+                                {
+                                    if (entry.ClearanceStatus == ClearanceStatus.FILED)
+                                    {
+                                        <span class="badge bg-warning bg-opacity-10 text-warning p-2">PENDING REVIEW</span>
+                                    }
+                                    else if (entry.ClearanceStatus == ClearanceStatus.UNDER_REVIEW)
+                                    {
+                                        <span class="badge bg-info bg-opacity-10 text-info p-2">UNDER REVIEW</span>
+                                    }
+                                    else if (entry.ClearanceStatus == ClearanceStatus.CLEARED)
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success p-2">APPROVED</span>
+                                    }
+                                    else if (entry.ClearanceStatus == ClearanceStatus.HELD)
+                                    {
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary p-2">HELD</span>
+                                    }
+                                    else if (entry.ClearanceStatus == ClearanceStatus.REJECTED)
+                                    {
+                                        <span class="badge bg-danger bg-opacity-10 text-danger p-2">REJECTED</span>
+                                    }
+                                }
+                                else
+                                {
+                                    if (entry.Documents.Any())
+                                    {
+                                        <span class="badge bg-primary bg-opacity-10 text-primary p-2">READY FOR FILING</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning bg-opacity-10 text-warning p-2">PENDING DOCS</span>
+                                    }
+                                }
+                            </td>
+                            <td class="text-end">
+                                @if (entry.IsFiledDeclaration)
+                                {
+                                    <a href="/Customs/Details/@entry.DeclarationId" class="btn btn-manage btn-sm">Review File</a>
+                                }
+                                else
+                                {
+                                    if (entry.Documents.Any())
+                                    {
+                                        <a href="/Customs/File?bookingId=@entry.BookingId" class="btn btn-primary-custom btn-sm">File Export</a>
+                                    }
+                                    else
+                                    {
+                                        <a href="/Customs/Bookings" class="btn btn-outline-secondary btn-sm">View Status</a>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="fas fa-folder-open fa-3x mb-3 text-opacity-25 text-primary"></i>
+            <h4>No Records Found</h4>
+            <p class="small text-muted mb-0">Try changing status filters or verify customer submissions.</p>
+        </div>
+    }
+</div>

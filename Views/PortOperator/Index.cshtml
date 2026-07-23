@@ -1,0 +1,184 @@
+@model CargoCaptain.ViewModels.PortDashboardViewModel
+
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "Terminal Dashboard";
+}
+
+<!-- Breadcrumbs Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Console</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Terminal Dashboard</li>
+            </ol>
+        </nav>
+        <h2 class="h3 mb-0 fw-bold text-dark">Port Terminal Console</h2>
+    </div>
+</div>
+
+<!-- KPI Cards Grid -->
+<div class="row g-3 mb-4">
+    <!-- Total Active -->
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="metric-card p-3 h-100">
+            <div>
+                <span class="metric-title d-block text-truncate">Total Containers</span>
+                <h4 class="metric-value mb-0 mt-1">@Model.TotalContainers</h4>
+            </div>
+        </div>
+    </div>
+    <!-- Gate In -->
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="metric-card p-3 h-100">
+            <div>
+                <span class="metric-title d-block text-truncate">Gate In</span>
+                <h4 class="metric-value text-warning mb-0 mt-1">@Model.GatedInCount</h4>
+            </div>
+        </div>
+    </div>
+    <!-- Loaded -->
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="metric-card p-3 h-100">
+            <div>
+                <span class="metric-title d-block text-truncate">Loaded</span>
+                <h4 class="metric-value text-info mb-0 mt-1">@Model.LoadedCount</h4>
+            </div>
+        </div>
+    </div>
+    <!-- Sailed -->
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="metric-card p-3 h-100">
+            <div>
+                <span class="metric-title d-block text-truncate">Sailed</span>
+                <h4 class="metric-value text-primary mb-0 mt-1">@Model.SailedCount</h4>
+            </div>
+        </div>
+    </div>
+    <!-- Discharged -->
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="metric-card p-3 h-100">
+            <div>
+                <span class="metric-title d-block text-truncate">Discharged</span>
+                <h4 class="metric-value text-success mb-0 mt-1">@Model.DischargedCount</h4>
+            </div>
+        </div>
+    </div>
+    <!-- Gate Out -->
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="metric-card p-3 h-100">
+            <div>
+                <span class="metric-title d-block text-truncate">Gate Out</span>
+                <h4 class="metric-value text-secondary mb-0 mt-1">@Model.GateOutCount</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Containers Awaiting Next Action -->
+    <div class="col-lg-6">
+        <div class="premium-table-card shadow-sm h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark mb-0"><i class="fas fa-tasks text-primary me-2"></i>Awaiting Next Action</h5>
+                <a href="/PortOperator/Containers" class="btn btn-manage btn-sm">Terminal Log</a>
+            </div>
+            
+            @if (Model.AwaitingActionContainers != null && Model.AwaitingActionContainers.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Container No</th>
+                                <th>Section</th>
+                                <th>Current Status</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model.AwaitingActionContainers)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-dark">@c.containerNumber</td>
+                                    <td>
+                                        @if (c.ShipmentBooking?.CustomsDeclaration?.declarationType == CargoCaptain.Enums.DeclarationType.EXPORT)
+                                        {
+                                            <span class="badge bg-primary bg-opacity-10 text-primary p-2">EXPORT</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success bg-opacity-10 text-success p-2">IMPORT</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border p-2">@c.containerStatus</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="/PortOperator/RecordEvent?containerId=@c.containerId" class="btn btn-outline-primary btn-sm px-2 py-1" style="font-size: 0.78rem;">
+                                            Log Milestone
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-check-circle fa-2x mb-2 text-opacity-50 text-success"></i>
+                    <div>All Container Milestones are Complete</div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Recent Milestones Feed -->
+    <div class="col-lg-6">
+        <div class="premium-table-card shadow-sm h-100">
+            <h5 class="fw-bold text-dark mb-3"><i class="fas fa-history text-primary me-2"></i>Recent Milestone Audits</h5>
+            
+            @if (Model.RecentMilestones != null && Model.RecentMilestones.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Container No</th>
+                                <th>Milestone</th>
+                                <th>Timestamp</th>
+                                <th>Recorded By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var me in Model.RecentMilestones)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-primary">@me.Container?.containerNumber</td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border p-2">@me.eventType</span>
+                                    </td>
+                                    <td style="font-size: 0.78rem;">
+                                        <div>@me.eventTimestamp.ToString("yyyy-MM-dd")</div>
+                                        <div class="text-muted">@me.eventTimestamp.ToString("HH:mm")</div>
+                                    </td>
+                                    <td class="text-muted">@me.recordedBy</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-truck-loading fa-2x mb-2 text-opacity-50"></i>
+                    <div>No Port Milestones Registered Yet</div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

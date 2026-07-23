@@ -1,0 +1,18 @@
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Unauthorized";
+}
+
+<div class="text-center">
+    <div class="mb-3 text-warning">
+        <i class="fas fa-exclamation-triangle fa-3x"></i>
+    </div>
+    <h4 class="fw-bold text-dark mb-2">Authentication Required</h4>
+    <p class="text-muted small mb-4">
+        You must be signed into an active session to view this dashboard area.
+    </p>
+    
+    <a href="/Account/Login" class="btn btn-primary-custom w-100 py-2.5">
+        <i class="fas fa-sign-in-alt me-1"></i> Sign In
+    </a>
+</div>

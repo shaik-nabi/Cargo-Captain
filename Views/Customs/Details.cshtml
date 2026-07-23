@@ -1,0 +1,199 @@
+@model CargoCaptain.Models.CustomsDeclaration
+@using CargoCaptain.Enums
+
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "Declaration Review";
+    var docs = ViewBag.UploadedDocuments as List<CargoCaptain.Controllers.DocumentMetadata> ?? new List<CargoCaptain.Controllers.DocumentMetadata>();
+}
+
+<!-- Breadcrumbs Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Console</a></li>
+                <li class="breadcrumb-item"><a href="/Customs/Declarations" class="text-decoration-none">Declarations</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Review DEC-@Model.declarationId</li>
+            </ol>
+        </nav>
+        <h2 class="h3 mb-0 fw-bold text-dark">Clearance Panel: DEC-@Model.declarationId</h2>
+    </div>
+</div>
+
+<!-- TempData Alerts -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- Left Column: Declaration Details & Staging Documents -->
+    <div class="col-lg-8">
+        <div class="bg-white p-4 border rounded-3 shadow-sm mb-4">
+            <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-info-circle text-primary me-2"></i>Declaration Particulars</h5>
+            
+            <div class="row g-3 small mb-4">
+                <div class="col-sm-6">
+                    <span class="text-muted">Declaration Type</span>
+                    <div class="fw-bold text-dark fs-6">@Model.declarationType Customs Clearance</div>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted">Booking Reference</span>
+                    <div class="fw-bold text-primary fs-6">@Model.ShipmentBooking?.bookingNumber</div>
+                </div>
+                <div class="col-sm-4">
+                    <span class="text-muted">HS Code classification</span>
+                    <div class="fw-bold text-dark fs-6">@Model.hsCode</div>
+                </div>
+                <div class="col-sm-4">
+                    <span class="text-muted">Declared Value</span>
+                    <div class="fw-bold text-dark fs-6">$@Model.declaredValue.ToString("N2")</div>
+                </div>
+                <div class="col-sm-4">
+                    <span class="text-muted">Calculated Customs Duty</span>
+                    <div class="fw-bold text-primary fs-6">$@Model.calculatedDuty.ToString("N2")</div>
+                </div>
+            </div>
+
+            <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-ship text-primary me-2"></i>Booking Manifest Info</h5>
+            
+            <div class="row g-3 small">
+                <div class="col-sm-6">
+                    <span class="text-muted">Shipper Name</span>
+                    <div class="fw-bold text-dark">@Model.ShipmentBooking?.shipperName</div>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted">Consignee Name</span>
+                    <div class="fw-bold text-dark">@Model.ShipmentBooking?.consigneeName</div>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted">Origin / Destination Port</span>
+                    <div class="fw-bold text-dark">From @Model.ShipmentBooking?.originPort to @Model.ShipmentBooking?.destinationPort</div>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted">Declared Cargo Weight</span>
+                    <div class="fw-bold text-dark">@Model.ShipmentBooking?.cargoWeight.ToString("N2") Tons</div>
+                </div>
+                <div class="col-sm-12">
+                    <span class="text-muted">Cargo Description</span>
+                    <p class="text-muted mb-0">@Model.ShipmentBooking?.cargoDescription</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Document Verification Checklist -->
+        <div class="bg-white p-4 border rounded-3 shadow-sm mb-4">
+            <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-file-check text-primary me-2"></i>Document Verification Checklist</h5>
+            <p class="text-muted small">Verify shipper-uploaded shipping bills, commercial invoices, or customs declarations documents:</p>
+            
+            @if (docs != null && docs.Any())
+            {
+                <div class="list-group list-group-flush">
+                    @foreach (var doc in docs)
+                    {
+                        <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                            <span><i class="far fa-file-pdf text-danger me-2"></i>@doc.OriginalName</span>
+                            <a href="/uploads/bookings/@Model.bookingId/@doc.GuidName" target="_blank" class="btn btn-sm btn-light border px-3" download="@doc.OriginalName">
+                                <i class="fas fa-download me-1"></i> View Document
+                            </a>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4 text-muted">
+                    <i class="far fa-folder-open fa-2x mb-2 text-opacity-50"></i>
+                    <div class="small">No supporting documentation uploaded.</div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Right Column: Status Transitions Form -->
+    <div class="col-lg-4">
+        <div class="bg-white p-4 border rounded-3 shadow-sm h-100">
+            <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-cogs text-primary me-2"></i>Clearance Actions</h5>
+            
+            <div class="mb-4">
+                <span class="text-muted small d-block">Current Clearance Status</span>
+                @if (Model.clearanceStatus == ClearanceStatus.FILED)
+                {
+                    <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 mt-1 fs-6">PENDING</span>
+                }
+                else if (Model.clearanceStatus == ClearanceStatus.UNDER_REVIEW)
+                {
+                    <span class="badge bg-info bg-opacity-10 text-info px-3 py-2 mt-1 fs-6">UNDER REVIEW</span>
+                }
+                else if (Model.clearanceStatus == ClearanceStatus.CLEARED)
+                {
+                    <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 mt-1 fs-6">APPROVED</span>
+                }
+                else if (Model.clearanceStatus == ClearanceStatus.HELD)
+                {
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2 mt-1 fs-6">HELD</span>
+                }
+                else if (Model.clearanceStatus == ClearanceStatus.REJECTED)
+                {
+                    <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 mt-1 fs-6">REJECTED</span>
+                }
+            </div>
+
+            <!-- Transition Rules Forms -->
+            @if (Model.clearanceStatus == ClearanceStatus.FILED)
+            {
+                <form method="post" asp-controller="Customs" asp-action="UpdateStatus" asp-route-id="@Model.declarationId">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="newStatus" value="@ClearanceStatus.UNDER_REVIEW" />
+                    <button type="submit" class="btn btn-warning text-white w-100 d-flex align-items-center justify-content-center gap-2">
+                        <i class="fas fa-search"></i>
+                        <span>Mark as Under Review</span>
+                    </button>
+                    <p class="form-text small text-muted text-center mt-2">Declarations must be marked under review before final approval/rejection.</p>
+                </form>
+            }
+            else if (Model.clearanceStatus == ClearanceStatus.UNDER_REVIEW || Model.clearanceStatus == ClearanceStatus.HELD)
+            {
+                <form method="post" asp-controller="Customs" asp-action="UpdateStatus" asp-route-id="@Model.declarationId" class="d-flex flex-column gap-3">
+                    @Html.AntiForgeryToken()
+                    
+                    <div>
+                        <label class="form-label small fw-bold">Select Review Resolution</label>
+                        <select name="newStatus" class="form-select" required>
+                            <option value="" disabled selected>Choose resolution...</option>
+                            <option value="@ClearanceStatus.CLEARED">Approve / Clear Cargo</option>
+                            <option value="@ClearanceStatus.REJECTED">Reject Filing</option>
+                            <option value="@ClearanceStatus.HELD">Hold Shipment</option>
+                            @if (Model.clearanceStatus == ClearanceStatus.HELD)
+                            {
+                                <option value="@ClearanceStatus.UNDER_REVIEW">Move Back Under Review</option>
+                            }
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary-custom w-100 mt-2">
+                        <span>Submit Clearance Update</span>
+                    </button>
+                </form>
+            }
+            else if (Model.clearanceStatus == ClearanceStatus.CLEARED || Model.clearanceStatus == ClearanceStatus.REJECTED)
+            {
+                <div class="alert alert-secondary text-center small mb-0">
+                    <i class="fas fa-lock me-2 text-muted"></i>
+                    <span>This declaration has been finalized and its status is locked.</span>
+                </div>
+            }
+        </div>
+    </div>
+</div>

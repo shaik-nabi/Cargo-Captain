@@ -1,0 +1,361 @@
+@using CargoCaptain.ViewModels
+@using CargoCaptain.Enums
+@using CargoCaptain.Models
+
+@{
+    Layout = "_DashboardLayout";
+    string type = ViewBag.ReportType as string ?? "shipment";
+    ViewData["Title"] = $"{type.ToUpper()} Report Output";
+    var startVal = ViewBag.StartDate as DateTime?;
+    var endVal = ViewBag.EndDate as DateTime?;
+    var statusVal = ViewBag.Status as InvoiceStatus?;
+}
+
+<!-- Breadcrumbs Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Console</a></li>
+                <li class="breadcrumb-item"><a href="/Reports" class="text-decoration-none">Reports</a></li>
+                <li class="breadcrumb-item active" aria-current="page">View Report</li>
+            </ol>
+        </nav>
+        <h2 class="h3 mb-0 fw-bold text-dark">Report: @type.ToUpper()</h2>
+    </div>
+
+    <!-- Export Action Buttons -->
+    @if (type.ToLower() != "analytics")
+    {
+        <div class="d-flex gap-2">
+            <a href="/Reports/ExportExcel?type=@type&start=@(startVal?.ToString("yyyy-MM-dd"))&end=@(endVal?.ToString("yyyy-MM-dd"))&status=@statusVal" class="btn btn-sm btn-outline-success">
+                <i class="far fa-file-excel me-1"></i> Excel Export
+            </a>
+            <a href="/Reports/ExportPDF?type=@type&start=@(startVal?.ToString("yyyy-MM-dd"))&end=@(endVal?.ToString("yyyy-MM-dd"))&status=@statusVal" class="btn btn-sm btn-outline-danger" target="_blank">
+                <i class="far fa-file-pdf me-1"></i> PDF Export
+            </a>
+        </div>
+    }
+</div>
+
+<!-- Filters Panel -->
+@if (type.ToLower() == "shipment" || type.ToLower() == "revenue" || type.ToLower() == "invoice")
+{
+    <div class="bg-white p-3 border rounded shadow-sm mb-4 text-start">
+        <form method="get" action="/Reports/ViewReport" class="row g-3 align-items-end">
+            <input type="hidden" name="type" value="@type" />
+
+            @if (type.ToLower() == "shipment" || type.ToLower() == "revenue")
+            {
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-dark">Start Date</label>
+                    <input name="start" type="date" class="form-control form-control-sm" value="@(startVal?.ToString("yyyy-MM-dd"))" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-dark">End Date</label>
+                    <input name="end" type="date" class="form-control form-control-sm" value="@(endVal?.ToString("yyyy-MM-dd"))" />
+                </div>
+            }
+
+            @if (type.ToLower() == "invoice")
+            {
+                <div class="col-md-8">
+                    <label class="form-label small fw-bold text-dark">Invoice Status</label>
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="">All Statuses</option>
+                        @foreach (var val in Enum.GetValues<InvoiceStatus>())
+                        {
+                            <!option value="@val" @(statusVal == val ? "selected" : "")>@val</!option>
+                        }
+                    </select>
+                </div>
+            }
+
+            <div class="col-md-4 d-grid">
+                <button type="submit" class="btn btn-primary-custom btn-sm"><i class="fas fa-filter me-1"></i>Apply Filters</button>
+            </div>
+        </form>
+    </div>
+}
+
+<!-- Results Render Block -->
+<div class="premium-table-card shadow-sm">
+    @if (type.ToLower() == "shipment")
+    {
+        var data = Model as IEnumerable<ShipmentReportRow>;
+        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-ship text-primary me-2"></i>Shipments Summary Output</h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                <thead class="table-light">
+                    <tr>
+                        <th>Booking Number</th>
+                        <th>Shipper Name</th>
+                        <th>Origin Port</th>
+                        <th>Destination Port</th>
+                        <th>Current Status</th>
+                        <th>Latest Milestone</th>
+                        <th>Booking Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (data != null && data.Any())
+                    {
+                        foreach (var row in data)
+                        {
+                            <tr>
+                                <td class="fw-bold text-primary">@row.BookingNumber</td>
+                                <td>@row.Shipper</td>
+                                <td>@row.Origin</td>
+                                <td>@row.Destination</td>
+                                <td><span class="badge bg-light text-dark border">@row.CurrentStatus</span></td>
+                                <td><span class="badge bg-primary bg-opacity-10 text-primary">@row.LatestMilestone</span></td>
+                                <td>@row.BookingDate.ToString("yyyy-MM-dd")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="7" class="text-center py-4 text-muted">No shipments found matching search limits.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else if (type.ToLower() == "invoice")
+    {
+        var data = Model as IEnumerable<FreightInvoice>;
+        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-file-invoice-dollar text-primary me-2"></i>Invoices Summary Output</h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                <thead class="table-light">
+                    <tr>
+                        <th>Invoice Number</th>
+                        <th>Booking Reference</th>
+                        <th>Freight Charge</th>
+                        <th>Surcharge</th>
+                        <th>Demurrage</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th>Payment Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (data != null && data.Any())
+                    {
+                        foreach (var row in data)
+                        {
+                            <tr>
+                                <td class="fw-bold text-dark">@row.invoiceNumber</td>
+                                <td class="text-primary fw-semibold">@row.ShipmentBooking?.bookingNumber</td>
+                                <td>$@row.freightCharges.ToString("N2")</td>
+                                <td>$@row.surchargeAmount.ToString("N2")</td>
+                                <td>$@row.demurrageAmount.ToString("N2")</td>
+                                <td class="fw-bold text-dark">$@row.totalAmount.ToString("N2")</td>
+                                <td>
+                                    @if (row.invoiceStatus == InvoiceStatus.PAID)
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success p-2">PAID</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning bg-opacity-10 text-warning p-2">@row.invoiceStatus</span>
+                                    }
+                                </td>
+                                <td>@(row.paymentDate?.ToString("yyyy-MM-dd") ?? "Unpaid")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="8" class="text-center py-4 text-muted">No invoices found matching search limits.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else if (type.ToLower() == "revenue")
+    {
+        var data = Model as RevenueReportSummary;
+        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-wallet text-primary me-2"></i>Financial Revenue Summary</h5>
+        @if (data != null)
+        {
+            <div class="row g-4 p-3 text-start">
+                <div class="col-md-6 col-lg-4 border-end">
+                    <span class="text-muted small">Total Revenue (Paid + Unpaid)</span>
+                    <h3 class="fw-bold text-dark">$@data.TotalRevenue.ToString("N2")</h3>
+                    
+                    <span class="text-muted small d-block mt-3">Paid Revenue</span>
+                    <h4 class="fw-bold text-success">$@data.PaidRevenue.ToString("N2")</h4>
+
+                    <span class="text-muted small d-block mt-3">Outstanding Revenue</span>
+                    <h4 class="fw-bold text-warning">$@data.OutstandingRevenue.ToString("N2")</h4>
+                </div>
+                
+                <div class="col-md-6 col-lg-4 border-end">
+                    <span class="text-muted small d-block">Ocean Freight Total</span>
+                    <h5 class="fw-semibold text-dark">$@data.OceanFreightTotal.ToString("N2")</h5>
+                    
+                    <span class="text-muted small d-block mt-2">Surcharges Total</span>
+                    <h5 class="fw-semibold text-dark">$@data.SurchargeTotal.ToString("N2")</h5>
+
+                    <span class="text-muted small d-block mt-2">Demurrage Total</span>
+                    <h5 class="fw-semibold text-danger">$@data.DemurrageTotal.ToString("N2")</h5>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <span class="text-muted small d-block">Draft Invoices</span>
+                    <h5 class="fw-semibold text-muted">@data.DraftCount</h5>
+                    
+                    <span class="text-muted small d-block mt-2">Issued Invoices</span>
+                    <h5 class="fw-semibold text-warning">@data.IssuedCount</h5>
+
+                    <span class="text-muted small d-block mt-2">Paid Invoices</span>
+                    <h5 class="fw-semibold text-success">@data.PaidCount</h5>
+                </div>
+            </div>
+        }
+    }
+    else if (type.ToLower() == "demurrage")
+    {
+        var data = Model as IEnumerable<DemurrageReportRow>;
+        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-history text-primary me-2"></i>Demurrage & Storage Audits</h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                <thead class="table-light">
+                    <tr>
+                        <th>Container Number</th>
+                        <th>Booking Number</th>
+                        <th>Arrival Date</th>
+                        <th>Departure Date</th>
+                        <th>Total Days</th>
+                        <th>Billable Days</th>
+                        <th>Demurrage Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (data != null && data.Any())
+                    {
+                        foreach (var row in data)
+                        {
+                            <tr>
+                                <td class="fw-bold text-dark">@row.ContainerNumber</td>
+                                <td class="text-primary">@row.BookingNumber</td>
+                                <td>@(row.ArrivalDate?.ToString("yyyy-MM-dd") ?? "N/A")</td>
+                                <td>@(row.DepartureDate?.ToString("yyyy-MM-dd") ?? "N/A")</td>
+                                <td>@row.TotalDays Days</td>
+                                <td><span class="badge bg-danger bg-opacity-10 text-danger">@row.ChargeableDays Days</span></td>
+                                <td class="fw-bold text-danger">$@row.DemurrageAmount.ToString("N2")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="7" class="text-center py-4 text-muted">No demurrage fees incurred on active containers.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else if (type.ToLower() == "booking")
+    {
+        var data = Model as IEnumerable<BookingReportRow>;
+        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-file-contract text-primary me-2"></i>Booking Summaries</h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                <thead class="table-light">
+                    <tr>
+                        <th>Booking Status</th>
+                        <th>Count Tally</th>
+                        <th>Total Weight (Tons)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (data != null && data.Any())
+                    {
+                        foreach (var row in data)
+                        {
+                            <tr>
+                                <td class="fw-bold text-dark">@row.Status</td>
+                                <td class="fw-semibold">@row.Count Shipments</td>
+                                <td class="text-muted">@row.TotalWeight.ToString("N2") Tons</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="3" class="text-center py-4 text-muted">No bookings registered yet.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else if (type.ToLower() == "container")
+    {
+        var data = Model as IEnumerable<ContainerReportRow>;
+        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-box text-primary me-2"></i>Container Staging Status</h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                <thead class="table-light">
+                    <tr>
+                        <th>Container Number</th>
+                        <th>Type</th>
+                        <th>Physical Status</th>
+                        <th>Booking Number</th>
+                        <th>Current Location</th>
+                        <th>Latest Milestone</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (data != null && data.Any())
+                    {
+                        foreach (var row in data)
+                        {
+                            <tr>
+                                <td class="fw-bold text-dark">@row.ContainerNumber</td>
+                                <td>@row.ContainerType</td>
+                                <td><span class="badge bg-light text-dark border">@row.CurrentStatus</span></td>
+                                <td class="text-primary fw-semibold">@row.BookingNumber</td>
+                                <td>@row.CurrentLocation</td>
+                                <td><span class="badge bg-primary bg-opacity-10 text-primary">@row.LatestMilestone</span></td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="6" class="text-center py-4 text-muted">No container staging data found.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else if (type.ToLower() == "analytics")
+    {
+        <h5 class="fw-bold text-dark mb-4"><i class="fas fa-chart-line text-primary me-2"></i>System-wide analytics</h5>
+        <div class="row g-4 p-3 text-start">
+            <div class="col-sm-6 col-lg-3">
+                <div class="border p-3 rounded">
+                    <span class="text-muted small">Total System Bookings</span>
+                    <h3 class="fw-bold text-dark">@ViewBag.TotalBookings</h3>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="border p-3 rounded">
+                    <span class="text-muted small">Total Staged Containers</span>
+                    <h3 class="fw-bold text-dark">@ViewBag.TotalContainers</h3>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="border p-3 rounded">
+                    <span class="text-muted small">Total Revenue Generated</span>
+                    <h3 class="fw-bold text-primary">$@ViewBag.TotalRevenue.ToString("N2")</h3>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="border p-3 rounded">
+                    <span class="text-muted small">Total Paid Revenue</span>
+                    <h3 class="fw-bold text-success">$@ViewBag.PaidRevenue.ToString("N2")</h3>
+                </div>
+            </div>
+        </div>
+    }
+</div>

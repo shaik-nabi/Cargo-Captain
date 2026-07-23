@@ -1,0 +1,223 @@
+@model IEnumerable<CargoCaptain.Models.ShipmentBooking>
+@using CargoCaptain.Enums
+
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "Consignee Dashboard";
+}
+
+<!-- Breadcrumbs Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Console</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Consignee Dashboard</li>
+            </ol>
+        </nav>
+        <h2 class="h3 mb-0 fw-bold text-dark">Inbound Consignee Console</h2>
+    </div>
+</div>
+
+<!-- KPI Cards Grid -->
+<div class="row g-4 mb-4">
+    <!-- Card 1: Total Inbound -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card p-3">
+            <div>
+                <span class="metric-title">Total Inbound Shipments</span>
+                <h3 class="metric-value mb-0 mt-1">@ViewBag.TotalBookings</h3>
+            </div>
+            <div class="metric-icon-box bg-primary bg-opacity-10 text-primary">
+                <i class="fas fa-boxes fa-lg"></i>
+            </div>
+        </div>
+    </div>
+    <!-- Card 2: In Transit -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card p-3">
+            <div>
+                <span class="metric-title">In Voyage Transit</span>
+                <h3 class="metric-value text-info mb-0 mt-1">@ViewBag.InTransitCount</h3>
+            </div>
+            <div class="metric-icon-box bg-info bg-opacity-10 text-info">
+                <i class="fas fa-ship fa-lg"></i>
+            </div>
+        </div>
+    </div>
+    <!-- Card 3: Cleared Customs -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card p-3">
+            <div>
+                <span class="metric-title">Customs Cleared</span>
+                <h3 class="metric-value text-success mb-0 mt-1">@ViewBag.ClearedCustomsCount</h3>
+            </div>
+            <div class="metric-icon-box bg-success bg-opacity-10 text-success">
+                <i class="fas fa-shield-alt fa-lg"></i>
+            </div>
+        </div>
+    </div>
+    <!-- Card 4: Unpaid Billing -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card p-3">
+            <div>
+                <span class="metric-title">Unpaid Freight Bills</span>
+                <h3 class="metric-value text-warning mb-0 mt-1">$@ViewBag.UnpaidInvoiceTotal.ToString("N2")</h3>
+            </div>
+            <div class="metric-icon-box bg-warning bg-opacity-10 text-warning">
+                <i class="fas fa-file-invoice-dollar fa-lg"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Tracking Bar -->
+<div class="bg-white p-3 border rounded-3 shadow-sm mb-4">
+    <form action="/Tracking/Search" method="get" class="row g-2 align-items-center">
+        <div class="col-md-9 col-lg-10">
+            <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="fas fa-search"></i></span>
+                <input type="text" name="bookingNumber" class="form-control border-start-0 ps-0" placeholder="Enter Booking Ref or Container Number (e.g. BKG-20260719-Q45H)..." required>
+            </div>
+        </div>
+        <div class="col-md-3 col-lg-2">
+            <button type="submit" class="btn btn-primary-custom w-100"><i class="fas fa-search-location me-1"></i> Track Cargo</button>
+        </div>
+    </form>
+</div>
+
+<!-- Inbound Shipments Table -->
+<div class="premium-table-card shadow-sm mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold text-dark mb-0"><i class="fas fa-truck-loading text-primary me-2"></i>Inbound Cargo Manifest</h5>
+    </div>
+    
+    @if (Model != null && Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
+                <thead class="table-light">
+                    <tr>
+                        <th>Booking Ref</th>
+                        <th>Shipper</th>
+                        <th>Route Details</th>
+                        <th>Container(s)</th>
+                        <th>Customs Clearance</th>
+                        <th>Freight Billing</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var b in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold text-primary">@b.bookingNumber</td>
+                            <td>@b.shipperName</td>
+                            <td style="font-size: 0.8rem;">
+                                <div><strong>From:</strong> @b.originPort</div>
+                                <div><strong>To:</strong> @b.destinationPort</div>
+                            </td>
+                            <td>
+                                @if (b.Containers.Any())
+                                {
+                                    <span class="badge bg-light text-dark border p-2">@b.Containers.Count Container(s)</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary p-2">Unassigned</span>
+                                }
+                            </td>
+                            <td>
+                                @if (b.CustomsDeclaration != null)
+                                {
+                                    if (b.CustomsDeclaration.clearanceStatus == ClearanceStatus.CLEARED)
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success p-2"><i class="fas fa-check-circle me-1"></i>CLEARED</span>
+                                    }
+                                    else if (b.CustomsDeclaration.clearanceStatus == ClearanceStatus.UNDER_REVIEW)
+                                    {
+                                        <span class="badge bg-info bg-opacity-10 text-info p-2"><i class="far fa-hourglass me-1"></i>UNDER REVIEW</span>
+                                    }
+                                    else if (b.CustomsDeclaration.clearanceStatus == ClearanceStatus.HELD)
+                                    {
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary p-2"><i class="fas fa-exclamation-triangle me-1"></i>HELD</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning bg-opacity-10 text-warning p-2"><i class="far fa-clock me-1"></i>FILED</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="badge bg-light text-muted border p-2"><i class="far fa-circle me-1"></i>UNFILED</span>
+                                }
+                            </td>
+                            <td>
+                                @if (b.FreightInvoice != null)
+                                {
+                                    <div class="small">
+                                        <strong>Freight:</strong> 
+                                        @if (b.FreightInvoice.invoiceStatus == InvoiceStatus.PAID)
+                                        {
+                                            <span class="text-success fw-semibold">PAID</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-warning fw-semibold">UNPAID</span>
+                                        }
+                                    </div>
+                                    @if (b.FreightInvoice.demurrageAmount > 0)
+                                    {
+                                        <div class="small mt-1">
+                                            <strong>Demurrage:</strong> 
+                                            @if (b.FreightInvoice.demurrageStatus == InvoiceStatus.PAID)
+                                            {
+                                                <span class="text-success fw-semibold">PAID</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-danger fw-semibold">UNPAID ($@b.FreightInvoice.demurrageAmount.ToString("N2"))</span>
+                                            }
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">Not Billed</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="/Tracking/Search?bookingNumber=@b.bookingNumber" class="btn btn-light btn-sm border" target="_blank" title="Track Live Cargo Progress">
+                                        <i class="fas fa-search-location text-primary"></i> Track
+                                    </a>
+                                    @if (b.FreightInvoice != null)
+                                    {
+                                        <a href="/FreightInvoice/Details?id=@b.FreightInvoice.invoiceId" class="btn btn-light btn-sm border" title="View Invoice details">
+                                            <i class="fas fa-file-invoice text-secondary"></i> Details
+                                        </a>
+                                        @if (b.FreightInvoice.demurrageAmount > 0 && 
+                                             (b.FreightInvoice.demurrageStatus == InvoiceStatus.ISSUED || b.FreightInvoice.demurrageStatus == InvoiceStatus.OVERDUE))
+                                        {
+                                            <a href="/FreightInvoice/Pay?id=@b.FreightInvoice.invoiceId" class="btn btn-danger btn-sm" title="Pay Port Demurrage Fine">
+                                                <i class="fas fa-credit-card me-1"></i> Pay Demurrage
+                                            </a>
+                                        }
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="fas fa-shipping-fast fa-3x mb-3 text-opacity-25 text-primary"></i>
+            <h4>No Inbound Cargo Registered</h4>
+            <p class="small text-muted mb-0">Bookings listed under your registered Consignee name will display here.</p>
+        </div>
+    }
+</div>

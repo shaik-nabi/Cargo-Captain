@@ -1,0 +1,96 @@
+@model CargoCaptain.ViewModels.BookingViewModel
+
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "New Booking";
+}
+
+<!-- Breadcrumbs Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="/ShipmentBooking" class="text-decoration-none">Shipper Console</a></li>
+                <li class="breadcrumb-item"><a href="/ShipmentBooking" class="text-decoration-none">Bookings</a></li>
+                <li class="breadcrumb-item active" aria-current="page">New</li>
+            </ol>
+        </nav>
+        <h2 class="h3 mb-0 fw-bold text-dark">Register Shipment Booking</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="bg-white p-4 border rounded-3 shadow-sm">
+            <form method="post" asp-controller="ShipmentBooking" asp-action="Create">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                <h5 class="fw-bold mb-3 border-bottom pb-2 text-dark"><i class="fas fa-ship me-2 text-primary"></i>Route & Carrier Routing</h5>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-12">
+                        <label asp-for="consigneeName" class="form-label small fw-bold"></label>
+                        <input asp-for="consigneeName" class="form-control" placeholder="Consignee company name" required />
+                        <span asp-validation-for="consigneeName" class="text-danger small"></span>
+                    </div>
+                    
+                    <div class="col-sm-6">
+                        <label asp-for="originPort" class="form-label small fw-bold"></label>
+                        <select asp-for="originPort" class="form-select" required>
+                            <option value="" disabled selected>Select origin port...</option>
+                            <option value="Port of Rotterdam (NLRTM)">Port of Rotterdam (NLRTM)</option>
+                            <option value="Port of Singapore (SGSIN)">Port of Singapore (SGSIN)</option>
+                            <option value="Port of Shanghai (CNSHA)">Port of Shanghai (CNSHA)</option>
+                            <option value="Port of New York (USNYC)">Port of New York (USNYC)</option>
+                        </select>
+                        <span asp-validation-for="originPort" class="text-danger small"></span>
+                    </div>
+                    
+                    <div class="col-sm-6">
+                        <label asp-for="destinationPort" class="form-label small fw-bold"></label>
+                        <select asp-for="destinationPort" class="form-select" required>
+                            <option value="" disabled selected>Select destination port...</option>
+                            <option value="Port of Rotterdam (NLRTM)">Port of Rotterdam (NLRTM)</option>
+                            <option value="Port of Singapore (SGSIN)">Port of Singapore (SGSIN)</option>
+                            <option value="Port of Shanghai (CNSHA)">Port of Shanghai (CNSHA)</option>
+                            <option value="Port of New York (USNYC)">Port of New York (USNYC)</option>
+                        </select>
+                        <span asp-validation-for="destinationPort" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-sm-12">
+                        <label asp-for="bookingDate" class="form-label small fw-bold"></label>
+                        <input asp-for="bookingDate" type="date" class="form-control" required />
+                        <span asp-validation-for="bookingDate" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <h5 class="fw-bold mb-3 border-bottom pb-2 text-dark"><i class="fas fa-cubes me-2 text-primary"></i>Cargo Manifest Details</h5>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-12">
+                        <label asp-for="cargoWeight" class="form-label small fw-bold"></label>
+                        <input asp-for="cargoWeight" type="number" step="0.01" class="form-control" placeholder="Weight in metric tons" required />
+                        <span asp-validation-for="cargoWeight" class="text-danger small"></span>
+                    </div>
+                    <div class="col-sm-12">
+                        <label asp-for="cargoDescription" class="form-label small fw-bold"></label>
+                        <textarea asp-for="cargoDescription" class="form-control" rows="3" placeholder="Commodity description, HS code notes, package count..." required></textarea>
+                        <span asp-validation-for="cargoDescription" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end">
+                    <a href="/ShipmentBooking" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary-custom">Submit Booking</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

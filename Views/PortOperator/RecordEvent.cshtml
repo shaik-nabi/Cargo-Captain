@@ -1,0 +1,139 @@
+@model CargoCaptain.ViewModels.RecordMilestoneViewModel
+@using CargoCaptain.Enums
+
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "Record Port Milestone";
+}
+
+<!-- Breadcrumbs Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Console</a></li>
+                <li class="breadcrumb-item"><a href="/PortOperator/Containers" class="text-decoration-none">Terminal Logs</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Record Milestone</li>
+            </ol>
+        </nav>
+        <h2 class="h3 mb-0 fw-bold text-dark">Log Cargo Milestone: @Model.containerNumber</h2>
+    </div>
+</div>
+
+<!-- TempData Alerts -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- Log Form (Left Column) -->
+    <div class="col-lg-5">
+        <div class="bg-white p-4 border rounded-3 shadow-sm mb-4">
+            <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-plus-circle text-primary me-2"></i>Record New Milestone</h5>
+            
+            <form method="post" asp-controller="PortOperator" asp-action="RecordEvent">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="containerId" />
+                
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="eventType" class="form-label small fw-bold"></label>
+                    <select asp-for="eventType" class="form-select form-select-sm" required>
+                        <option value="" disabled selected>Select event milestone...</option>
+                        <optgroup label="Export Sequence Events">
+                            <option value="@CargoEventType.GATE_IN">Gate In (Export staging)</option>
+                            <option value="@CargoEventType.LOADED">Loaded (Vessel load)</option>
+                            <option value="@CargoEventType.SAILED">Sailed (Voyage transit)</option>
+                        </optgroup>
+                        <optgroup label="Import Sequence Events">
+                            <option value="@CargoEventType.SAILED">Sailed (Voyage transit)</option>
+                            <option value="@CargoEventType.DISCHARGED">Discharged (Vessel discharge)</option>
+                            <option value="@CargoEventType.GATE_OUT">Gate Out (Import staging release)</option>
+                        </optgroup>
+                    </select>
+                    <span asp-validation-for="eventType" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="eventLocation" class="form-label small fw-bold"></label>
+                    <input asp-for="eventLocation" class="form-control form-control-sm" placeholder="e.g. Port of Rotterdam (NLRTM)" required />
+                    <span asp-validation-for="eventLocation" class="text-danger small"></span>
+                </div>
+
+                <!-- Date & Time Recording Split -->
+                <div class="row g-2 mb-3">
+                    <div class="col-sm-6">
+                        <label asp-for="eventDate" class="form-label small fw-bold"></label>
+                        <input asp-for="eventDate" type="date" class="form-control form-control-sm" required />
+                        <span asp-validation-for="eventDate" class="text-danger small"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="eventTime" class="form-label small fw-bold"></label>
+                        <input asp-for="eventTime" type="time" class="form-control form-control-sm" required />
+                        <span asp-validation-for="eventTime" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="remarks" class="form-label small fw-bold"></label>
+                    <textarea asp-for="remarks" rows="3" class="form-control form-control-sm" placeholder="Write any operational remarks..."></textarea>
+                    <span asp-validation-for="remarks" class="text-danger small"></span>
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end">
+                    <a href="/PortOperator/Containers" class="btn btn-outline-secondary btn-sm">Cancel</a>
+                    <button type="submit" class="btn btn-primary-custom btn-sm">Record Milestone</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Timeline History logs (Right Column) -->
+    <div class="col-lg-7">
+        <div class="bg-white p-4 border rounded-3 shadow-sm h-100">
+            <h5 class="fw-bold text-dark border-bottom pb-2 mb-4"><i class="fas fa-history text-primary me-2"></i>Milestone History</h5>
+            
+            @if (Model.EventHistory != null && Model.EventHistory.Any())
+            {
+                <div class="milestone-timeline text-start">
+                    @foreach (var me in Model.EventHistory)
+                    {
+                        <div class="timeline-item pb-4 position-relative border-start ps-4 ms-3" style="border-left: 2px solid #e2e8f0 !important;">
+                            <div class="timeline-marker position-absolute rounded-circle bg-primary" style="width: 14px; height: 14px; left: -8px; top: 4px;"></div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="badge bg-light text-dark border p-2">@me.eventType</span>
+                                <span class="small text-muted">@me.eventTimestamp.ToString("yyyy-MM-dd HH:mm")</span>
+                            </div>
+                            
+                            <div class="small mb-1 text-dark"><strong>Location:</strong> @me.eventLocation</div>
+                            <div class="small text-muted mb-1"><strong>Recorded By:</strong> @me.recordedBy</div>
+                            
+                            @if (!string.IsNullOrWhiteSpace(me.remarks))
+                            {
+                                <div class="bg-light p-2 rounded small border text-muted">@me.remarks</div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-route fa-3x mb-3 text-opacity-25 text-primary"></i>
+                    <h5 class="fw-bold text-dark">No milestones recorded.</h5>
+                    <p class="small text-muted mb-0">Customs clearance approval must be complete before recording events.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

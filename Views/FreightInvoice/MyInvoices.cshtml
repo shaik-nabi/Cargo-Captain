@@ -1,0 +1,116 @@
+@model IEnumerable<CargoCaptain.Models.FreightInvoice>
+@using CargoCaptain.Enums
+
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "My Invoices";
+}
+
+<!-- Breadcrumbs Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Console</a></li>
+                <li class="breadcrumb-item active" aria-current="page">My Invoices</li>
+            </ol>
+        </nav>
+        <h2 class="h3 mb-0 fw-bold text-dark">Shipper Billing ledger</h2>
+    </div>
+</div>
+
+<!-- TempData Alerts -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Invoices Ledger -->
+<div class="premium-table-card shadow-sm">
+    <h5 class="fw-bold text-dark mb-3"><i class="fas fa-file-invoice text-primary me-2"></i>My Freight Invoices</h5>
+    
+    @if (Model != null && Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
+                <thead class="table-light">
+                    <tr>
+                        <th>Invoice Number</th>
+                        <th>Booking Number</th>
+                        <th>Currency</th>
+                        <th>Freight Charges</th>
+                        <th>Surcharges</th>
+                        <th>Demurrage</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var inv in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold text-dark">@inv.invoiceNumber</td>
+                            <td class="text-primary fw-semibold">@inv.ShipmentBooking?.bookingNumber</td>
+                            <td>@inv.currency</td>
+                            <td>$@inv.freightCharges.ToString("N2")</td>
+                            <td>$@inv.surchargeAmount.ToString("N2")</td>
+                            <td>$@inv.demurrageAmount.ToString("N2")</td>
+                            <td class="fw-bold text-dark">$@inv.totalAmount.ToString("N2")</td>
+                            <td>
+                                @if (inv.invoiceStatus == InvoiceStatus.DRAFT)
+                                {
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary p-2">DRAFT</span>
+                                }
+                                else if (inv.invoiceStatus == InvoiceStatus.ISSUED)
+                                {
+                                    <span class="badge bg-warning bg-opacity-10 text-warning p-2">ISSUED</span>
+                                }
+                                else if (inv.invoiceStatus == InvoiceStatus.PAID)
+                                {
+                                    <span class="badge bg-success bg-opacity-10 text-success p-2">PAID</span>
+                                }
+                                else if (inv.invoiceStatus == InvoiceStatus.OVERDUE)
+                                {
+                                    <span class="badge bg-danger bg-opacity-10 text-danger p-2">OVERDUE</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="/FreightInvoice/Details?id=@inv.invoiceId" class="btn btn-light btn-sm border" title="Review Breakdown">
+                                        <i class="fas fa-eye me-1"></i> Review
+                                    </a>
+                                    
+                                    @if (inv.invoiceStatus == InvoiceStatus.ISSUED || inv.invoiceStatus == InvoiceStatus.OVERDUE)
+                                    {
+                                        <a href="/FreightInvoice/Pay?id=@inv.invoiceId" class="btn btn-primary-custom btn-sm" title="Pay Invoice">
+                                            <i class="fas fa-credit-card me-1"></i> Pay
+                                        </a>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="fas fa-receipt fa-3x mb-3 text-opacity-25 text-primary"></i>
+            <h4>No Invoices Filed</h4>
+            <p class="small text-muted mb-0">Invoices will appear here once generated by ocean carriers and issued to your account.</p>
+        </div>
+    }
+</div>

@@ -1,0 +1,291 @@
+@using System.Security.Claims
+@{
+    var currentPath = Context.Request.Path.Value ?? "";
+    var username = User.Identity?.Name ?? "User";
+    var initials = username.Length >= 2 ? username.Substring(0, 2).ToUpper() : "US";
+    var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "Guest";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - CargoCaptain Console</title>
+    
+    <!-- Bootstrap 5 CSS Local -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    
+    <!-- Font Awesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    
+    <style>
+        /* Responsive Sidebar Styles */
+        @@media (max-width: 991.98px) {
+            .dashboard-sidebar {
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                left: -260px;
+                z-index: 1040;
+                box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            }
+            .dashboard-sidebar.show {
+                left: 0;
+            }
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: rgba(0, 0, 0, 0.4);
+                z-index: 1035;
+            }
+            .sidebar-overlay.show {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="dashboard-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="dashboard-sidebar" id="dashboardSidebar">
+            <div>
+                <!-- Brand Header -->
+                <div class="sidebar-header d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-ship text-primary"></i>
+                        <span>CargoCaptain</span>
+                    </div>
+                    <button class="btn btn-close btn-close-white d-lg-none" id="sidebarClose" aria-label="Close"></button>
+                </div>
+                
+                <!-- Nav Links -->
+                <nav class="sidebar-nav">
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a href="/Admin/Dashboard" class="sidebar-link @(currentPath.Contains("/Admin/Dashboard", StringComparison.OrdinalIgnoreCase) || currentPath == "/Admin" ? "active" : "")">
+                            <i class="fas fa-th-large"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="/Admin/Employees" class="sidebar-link @(currentPath.Contains("/Admin/Employees", StringComparison.OrdinalIgnoreCase) || currentPath.Contains("/Admin/CreateEmployee", StringComparison.OrdinalIgnoreCase) || currentPath.Contains("/Admin/EditEmployee", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="fas fa-users-cog"></i>
+                            <span>Employees</span>
+                        </a>
+                        <a href="/FreightInvoice/Dashboard" class="sidebar-link @(currentPath.Contains("/FreightInvoice", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            <span>Billing & Invoices</span>
+                        </a>
+                    }
+                    else if (User.IsInRole("Shipper"))
+                    {
+                        <a href="/ShipmentBooking" class="sidebar-link @(currentPath.Contains("/ShipmentBooking", StringComparison.OrdinalIgnoreCase) && !currentPath.Contains("/ShipmentBooking/Create", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="fas fa-th-large"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="/ShipmentBooking/Create" class="sidebar-link @(currentPath.Contains("/ShipmentBooking/Create", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Book Shipment</span>
+                        </a>
+                        <a href="/FreightInvoice/MyInvoices" class="sidebar-link @(currentPath.Contains("/FreightInvoice", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            <span>My Invoices</span>
+                        </a>
+                    }
+                    else if (User.IsInRole("Consignee"))
+                    {
+                        <a href="/Consignee/Dashboard" class="sidebar-link @(currentPath.Contains("/Consignee/Dashboard", StringComparison.OrdinalIgnoreCase) || currentPath == "/Consignee" ? "active" : "")">
+                            <i class="fas fa-th-large"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="/Tracking/Search" class="sidebar-link @(currentPath.Contains("/Tracking", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="fas fa-search-location"></i>
+                            <span>Track Cargo</span>
+                        </a>
+                    }
+                    else if (User.IsInRole("FreightForwarder"))
+                    {
+                        <a href="/FreightForwarder/Dashboard" class="sidebar-link @(currentPath.Contains("/FreightForwarder/Dashboard", StringComparison.OrdinalIgnoreCase) || currentPath == "/FreightForwarder" ? "active" : "")">
+                            <i class="fas fa-th-large"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="/Container/MasterBookings" class="sidebar-link @(currentPath.Contains("/Container/MasterBookings", StringComparison.OrdinalIgnoreCase) || currentPath.Contains("/Container/Allocate", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="fas fa-cubes"></i>
+                            <span>Container Allocations</span>
+                        </a>
+                        <a href="/FreightInvoice/Dashboard" class="sidebar-link @(currentPath.Contains("/FreightInvoice", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            <span>Billing & Invoices</span>
+                        </a>
+                    }
+                    else if (User.IsInRole("CustomsBroker"))
+                    {
+                        <a href="/CustomsBroker/Dashboard" class="sidebar-link @(currentPath.Contains("/CustomsBroker/Dashboard", StringComparison.OrdinalIgnoreCase) || currentPath == "/CustomsBroker" ? "active" : "")">
+                            <i class="fas fa-th-large"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="/Customs/Bookings" class="sidebar-link @(currentPath.Contains("/Customs/Bookings", StringComparison.OrdinalIgnoreCase) || currentPath.Contains("/Customs/File", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="fas fa-file-invoice"></i>
+                            <span>File Declaration</span>
+                        </a>
+                        <a href="/Customs/Declarations" class="sidebar-link @(currentPath.Contains("/Customs/Declarations", StringComparison.OrdinalIgnoreCase) || currentPath.Contains("/Customs/Details", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Customs Log</span>
+                        </a>
+                    }
+                    else if (User.IsInRole("PortOperator"))
+                    {
+                        <a href="/PortOperator/Dashboard" class="sidebar-link @(currentPath.Contains("/PortOperator/Dashboard", StringComparison.OrdinalIgnoreCase) || currentPath == "/PortOperator" ? "active" : "")">
+                            <i class="fas fa-th-large"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="/PortOperator/Containers" class="sidebar-link @(currentPath.Contains("/PortOperator/Containers", StringComparison.OrdinalIgnoreCase) || currentPath.Contains("/PortOperator/RecordEvent", StringComparison.OrdinalIgnoreCase) || currentPath.Contains("/PortOperator/Milestones", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="fas fa-ship"></i>
+                            <span>Terminal Ops</span>
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="#" class="sidebar-link active">
+                            <i class="fas fa-th-large"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="#" class="sidebar-link">
+                            <i class="fas fa-file-contract"></i>
+                            <span>Bookings & B/L</span>
+                        </a>
+                        <a href="#" class="sidebar-link">
+                            <i class="fas fa-ship"></i>
+                            <span>Vessel Manifests</span>
+                        </a>
+                        <a href="#" class="sidebar-link">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Customs Declarations</span>
+                        </a>
+                        <a href="#" class="sidebar-link">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            <span>Invoices</span>
+                        </a>
+                        <a href="#" class="sidebar-link">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Terminal Ops</span>
+                        </a>
+                    }
+                </nav>
+            </div>
+            
+            <!-- Sidebar Profile / Footer -->
+            <div class="sidebar-footer">
+                <div class="sidebar-profile">
+                    <div class="profile-avatar">@initials</div>
+                    <div>
+                        <div class="fw-bold text-white small">@username</div>
+                        <div class="text-muted small" style="font-size: 0.75rem;">@role</div>
+                    </div>
+                </div>
+                
+                <a href="/Account/Logout" class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-2 mt-2" style="border-color: rgba(220,53,69,0.2); background-color: rgba(220,53,69,0.05); color: #f87171;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sign Out</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Console Workspace -->
+        <main class="dashboard-content">
+            <!-- Top Header Bar -->
+            <header class="dashboard-header">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-sm btn-light border d-lg-none me-3" id="sidebarToggle" aria-label="Toggle Sidebar">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h4 class="mb-0 fw-bold">@ViewData["Title"]</h4>
+                </div>
+                
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Dynamic Systems Clock (UTC) -->
+                    <div class="text-muted small border rounded px-3 py-1 bg-white d-none d-sm-inline-block">
+                        <i class="far fa-clock me-1"></i> Systems Time (UTC): 
+                        <span id="dashboard-utc-time" class="fw-bold text-dark">2026-07-19 10:11:00</span>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Body Content -->
+            <div class="dashboard-workspace">
+                @RenderBody()
+            </div>
+        </main>
+    </div>
+
+    <!-- jQuery Local -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+    <!-- Bootstrap 5 JS Bundle Local -->
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Update UTC Systems Time in Header
+        function updateDashboardClock() {
+            const utcDate = new Date();
+            const yyyy = utcDate.getUTCFullYear();
+            const mm = String(utcDate.getUTCMonth() + 1).padStart(2, '0');
+            const dd = String(utcDate.getUTCDate()).padStart(2, '0');
+            const hh = String(utcDate.getUTCHours()).padStart(2, '0');
+            const min = String(utcDate.getUTCMinutes()).padStart(2, '0');
+            const ss = String(utcDate.getUTCSeconds()).padStart(2, '0');
+            
+            const formatted = `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+            const clockEl = document.getElementById('dashboard-utc-time');
+            if (clockEl) {
+                clockEl.textContent = formatted;
+            }
+        }
+        setInterval(updateDashboardClock, 1000);
+        updateDashboardClock();
+
+        // Responsive Sidebar Collapsible Toggles
+        const sidebar = document.getElementById('dashboardSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const toggleBtn = document.getElementById('sidebarToggle');
+        const closeBtn = document.getElementById('sidebarClose');
+
+        const openSidebar = () => {
+            sidebar?.classList.add('show');
+            overlay?.classList.add('show');
+        };
+
+        const closeSidebar = () => {
+            sidebar?.classList.remove('show');
+            overlay?.classList.remove('show');
+        };
+
+        toggleBtn?.addEventListener('click', openSidebar);
+        closeBtn?.addEventListener('click', closeSidebar);
+        overlay?.addEventListener('click', closeSidebar);
+
+        // Password visibility eye toggle
+        $(document).on('click', '.toggle-password', function () {
+            var input = $(this).closest('.input-group').find('input');
+            var icon = $(this).find('i');
+            if (input.attr('type') === 'password') {
+                input.attr('type', 'text');
+                icon.removeClass('fa-eye').addClass('fa-eye-slash');
+            } else {
+                input.attr('type', 'password');
+                icon.removeClass('fa-eye-slash').addClass('fa-eye');
+            }
+        });
+    </script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

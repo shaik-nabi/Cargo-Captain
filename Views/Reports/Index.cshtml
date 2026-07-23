@@ -1,0 +1,118 @@
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "Reports Console";
+    var isAdmin = User.IsInRole("Admin");
+}
+
+<!-- Breadcrumbs Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Console</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Reports Console</li>
+            </ol>
+        </nav>
+        <h2 class="h3 mb-0 fw-bold text-dark">CargoCaptain Reports Console</h2>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Main Reports Panel (Allowed items based on active role) -->
+    <div class="col-lg-12">
+        <div class="bg-white p-4 border rounded-3 shadow-sm mb-4 text-start">
+            <h5 class="fw-bold text-dark mb-4 border-bottom pb-2"><i class="fas fa-file-contract text-primary me-2"></i>Select Report to Run</h5>
+            
+            <div class="row g-4">
+                <!-- Shipment Report Card -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card">
+                        <div class="feature-icon-wrapper mb-3 bg-primary bg-opacity-10 text-primary">
+                            <i class="fas fa-shipping-fast"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark">Shipment Report</h5>
+                        <p class="small text-muted mb-4">Detailed cargo logs listing shippers, routes, dates, and milestones.</p>
+                        <a href="/Reports/ViewReport?type=shipment" class="btn btn-primary-custom btn-sm w-100">Run Report</a>
+                    </div>
+                </div>
+
+                <!-- Invoice Report Card -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card">
+                        <div class="feature-icon-wrapper mb-3 bg-warning bg-opacity-10 text-warning">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark">
+                            @(isAdmin ? "Invoice Report" : "Operational Invoice Report")
+                        </h5>
+                        <p class="small text-muted mb-4">Status tallies of generated cargo invoices, outstanding balances, and receipt dates.</p>
+                        <a href="/Reports/ViewReport?type=invoice" class="btn btn-primary-custom btn-sm w-100">Run Report</a>
+                    </div>
+                </div>
+
+                <!-- Booking Report Card -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card">
+                        <div class="feature-icon-wrapper mb-3 bg-info bg-opacity-10 text-info">
+                            <i class="fas fa-file-contract"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark">Booking Report</h5>
+                        <p class="small text-muted mb-4">Total cargo weights and tallied counts aggregated by booking statuses.</p>
+                        <a href="/Reports/ViewReport?type=booking" class="btn btn-primary-custom btn-sm w-100">Run Report</a>
+                    </div>
+                </div>
+
+                <!-- Container Report Card -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card">
+                        <div class="feature-icon-wrapper mb-3 bg-success bg-opacity-10 text-success">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark">Container Report</h5>
+                        <p class="small text-muted mb-4">Physical staging yard logs showing seal numbers, locations, and milestones.</p>
+                        <a href="/Reports/ViewReport?type=container" class="btn btn-primary-custom btn-sm w-100">Run Report</a>
+                    </div>
+                </div>
+
+                @if (isAdmin)
+                {
+                    <!-- Revenue Report Card (Admin Only) -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="feature-card border border-warning border-opacity-25">
+                            <div class="feature-icon-wrapper mb-3 bg-danger bg-opacity-10 text-danger">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark">Revenue Report <span class="badge bg-danger small text-white ms-1" style="font-size: 0.65rem;">ADMIN</span></h5>
+                            <p class="small text-muted mb-4">Ocean freight charges, staging surcharges, and demurrage totals.</p>
+                            <a href="/Reports/ViewReport?type=revenue" class="btn btn-primary-custom btn-sm w-100">Run Report</a>
+                        </div>
+                    </div>
+
+                    <!-- Demurrage Report Card (Admin Only) -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="feature-card border border-warning border-opacity-25">
+                            <div class="feature-icon-wrapper mb-3 bg-secondary bg-opacity-10 text-secondary">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark">Demurrage Report <span class="badge bg-danger small text-white ms-1" style="font-size: 0.65rem;">ADMIN</span></h5>
+                            <p class="small text-muted mb-4">Chargeable demurrage delay days and container terminal storage fee audits.</p>
+                            <a href="/Reports/ViewReport?type=demurrage" class="btn btn-primary-custom btn-sm w-100">Run Report</a>
+                        </div>
+                    </div>
+
+                    <!-- Admin Analytics Card (Admin Only) -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="feature-card border border-warning border-opacity-25">
+                            <div class="feature-icon-wrapper mb-3 bg-dark bg-opacity-10 text-dark">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark">Admin Analytics <span class="badge bg-danger small text-white ms-1" style="font-size: 0.65rem;">ADMIN</span></h5>
+                            <p class="small text-muted mb-4">Aggregated supply chain throughput metrics, container counts, and total paid bills.</p>
+                            <a href="/Reports/ViewReport?type=analytics" class="btn btn-primary-custom btn-sm w-100">Run Report</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

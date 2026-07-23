@@ -1,0 +1,106 @@
+@model CargoCaptain.ViewModels.EmployeeViewModel
+@using CargoCaptain.Enums
+
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "Edit Employee";
+}
+
+<!-- Breadcrumbs Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Console</a></li>
+                <li class="breadcrumb-item"><a href="/Admin/Employees" class="text-decoration-none">Employees</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Edit</li>
+            </ol>
+        </nav>
+        <h2 class="h3 mb-0 fw-bold text-dark">Edit Employee Profile</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="bg-white p-4 border rounded-3 shadow-sm">
+            <form method="post" asp-controller="Admin" asp-action="EditEmployee" asp-route-id="@Model.employeeId">
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" asp-for="employeeId" />
+
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                <h5 class="fw-bold mb-3 border-bottom pb-2 text-dark"><i class="far fa-user me-2 text-primary"></i>Personal Information</h5>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6">
+                        <label asp-for="firstName" class="form-label small fw-bold"></label>
+                        <input asp-for="firstName" class="form-control" required />
+                        <span asp-validation-for="firstName" class="text-danger small"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="lastName" class="form-label small fw-bold"></label>
+                        <input asp-for="lastName" class="form-control" required />
+                        <span asp-validation-for="lastName" class="text-danger small"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="email" class="form-label small fw-bold"></label>
+                        <input asp-for="email" type="email" class="form-control" required />
+                        <span asp-validation-for="email" class="text-danger small"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="phoneNumber" class="form-label small fw-bold"></label>
+                        <input asp-for="phoneNumber" class="form-control" required />
+                        <span asp-validation-for="phoneNumber" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <h5 class="fw-bold mb-3 border-bottom pb-2 text-dark"><i class="fas fa-lock me-2 text-primary"></i>System Login Credentials</h5>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6">
+                        <label asp-for="Username" class="form-label small fw-bold"></label>
+                        <input asp-for="Username" class="form-control" required />
+                        <span asp-validation-for="Username" class="text-danger small"></span>
+                    </div>
+                    <div class="col-sm-6">
+                    <label asp-for="Role" class="form-label small fw-bold"></label>
+                    @if (Model.Role == UserRole.Admin)
+                    {
+                        <input type="text" class="form-control bg-light" value="Admin" readonly />
+                        <input type="hidden" asp-for="Role" value="@UserRole.Admin" />
+                    }
+                    else
+                    {
+                        <select asp-for="Role" class="form-select" required>
+                            <option value="@UserRole.FreightForwarder">Freight Forwarder</option>
+                            <option value="@UserRole.CustomsBroker">Customs Broker</option>
+                            <option value="@UserRole.PortOperator">Port Operator</option>
+                        </select>
+                    }
+                    <span asp-validation-for="Role" class="text-danger small"></span>
+                    </div>
+                    <div class="col-sm-12">
+                        <label asp-for="Password" class="form-label small fw-bold"></label>
+                        <div class="input-group">
+                            <input asp-for="Password" class="form-control" placeholder="Leave blank to keep existing password" />
+                            <button class="btn btn-outline-secondary toggle-password" type="button" tabindex="-1">
+                                <i class="far fa-eye"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end">
+                    <a href="/Admin/Employees" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary-custom">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

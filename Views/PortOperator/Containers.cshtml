@@ -1,0 +1,134 @@
+@model IEnumerable<CargoCaptain.Models.Container>
+@using CargoCaptain.Enums
+
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "Yard Staging Logs";
+    var activeSection = ViewBag.ActiveSection as string ?? "all";
+}
+
+<!-- Breadcrumbs Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Console</a></li>
+                <li class="breadcrumb-item"><a href="/PortOperator" class="text-decoration-none">Terminal</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Terminal Logs</li>
+            </ol>
+        </nav>
+        <h2 class="h3 mb-0 fw-bold text-dark">Yard Staging logs</h2>
+    </div>
+</div>
+
+<!-- TempData Alerts -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Filter Bar -->
+<div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 border rounded-3 shadow-sm">
+    <div class="d-flex gap-2">
+        <a href="/PortOperator/Containers?section=all" class="btn btn-sm @(activeSection == "all" ? "btn-primary" : "btn-light border") px-3">All Staged</a>
+        <a href="/PortOperator/Containers?section=export" class="btn btn-sm @(activeSection == "export" ? "btn-primary" : "btn-light border") px-3">Export Section</a>
+        <a href="/PortOperator/Containers?section=import" class="btn btn-sm @(activeSection == "import" ? "btn-primary" : "btn-light border") px-3">Import Section</a>
+    </div>
+    <span class="small text-muted">Total staged containers: <strong>@Model.Count()</strong></span>
+</div>
+
+<!-- Grid List -->
+<div class="premium-table-card shadow-sm">
+    @if (Model != null && Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
+                <thead class="table-light">
+                    <tr>
+                        <th>Container Number</th>
+                        <th>Booking Number</th>
+                        <th>Workflow Scope</th>
+                        <th>Seal Number</th>
+                        <th>Type</th>
+                        <th>Physical Status</th>
+                        <th>Customs Approval</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in Model)
+                    {
+                        var declaration = c.ShipmentBooking?.CustomsDeclaration;
+                        var customsCleared = declaration != null && declaration.clearanceStatus == ClearanceStatus.CLEARED;
+
+                        <tr>
+                            <td class="fw-bold text-dark">@c.containerNumber</td>
+                            <td class="text-primary fw-semibold">@c.ShipmentBooking?.bookingNumber</td>
+                            <td>
+                                @if (declaration?.declarationType == DeclarationType.EXPORT)
+                                {
+                                    <span class="badge bg-primary bg-opacity-10 text-primary p-2">EXPORT</span>
+                                }
+                                else if (declaration?.declarationType == DeclarationType.IMPORT)
+                                {
+                                    <span class="badge bg-success bg-opacity-10 text-success p-2">IMPORT</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary p-2">STAGING</span>
+                                }
+                            </td>
+                            <td>@c.sealNumber</td>
+                            <td>@c.containerType</td>
+                            <td>
+                                <span class="badge bg-light text-dark border p-2">@c.containerStatus</span>
+                            </td>
+                            <td>
+                                @if (customsCleared)
+                                {
+                                    <span class="text-success"><i class="fas fa-check-circle me-1"></i>Approved</span>
+                                }
+                                else if (declaration != null)
+                                {
+                                    <span class="text-warning"><i class="far fa-clock me-1"></i>Filing Filed</span>
+                                }
+                                else
+                                {
+                                    <span class="text-danger"><i class="fas fa-times-circle me-1"></i>Not Filed</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="/PortOperator/RecordEvent?containerId=@c.containerId" class="btn btn-primary-custom btn-sm" title="Log milestone event">
+                                        <i class="fas fa-plus-circle me-1"></i> Record Event
+                                    </a>
+                                    <a href="/PortOperator/Milestones?containerId=@c.containerId" class="btn btn-light btn-sm border" title="Event Log History">
+                                        <i class="fas fa-history me-1"></i> History
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="fas fa-box-open fa-3x mb-3 text-opacity-25 text-primary"></i>
+            <h4>No Staging Containers Registered</h4>
+            <p class="small text-muted mb-0">Containers must be allocated by Freight Forwarders to display on the terminal.</p>
+        </div>
+    }
+</div>

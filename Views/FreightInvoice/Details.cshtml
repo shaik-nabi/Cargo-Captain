@@ -1,0 +1,198 @@
+@model CargoCaptain.Models.FreightInvoice
+@using CargoCaptain.Enums
+
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "Invoice Summary Sheet";
+}
+
+<!-- Breadcrumbs Header (hidden on print) -->
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2 d-print-none">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Console</a></li>
+                <li class="breadcrumb-item">
+                    @if (User.IsInRole("Shipper"))
+                    {
+                        <a href="/FreightInvoice/MyInvoices" class="text-decoration-none">My Invoices</a>
+                    }
+                    else
+                    {
+                        <a href="/FreightInvoice" class="text-decoration-none">Invoices</a>
+                    }
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Invoice details</li>
+            </ol>
+        </nav>
+        <h2 class="h3 mb-0 fw-bold text-dark">Invoice: @Model.invoiceNumber</h2>
+    </div>
+    
+    <div>
+        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm me-2">
+            <i class="fas fa-print me-1"></i> Print Invoice
+        </button>
+        @if (User.IsInRole("Shipper") && (Model.invoiceStatus == InvoiceStatus.ISSUED || Model.invoiceStatus == InvoiceStatus.OVERDUE))
+        {
+            <a href="/FreightInvoice/Pay?id=@Model.invoiceId" class="btn btn-primary-custom btn-sm">
+                <i class="fas fa-credit-card me-1"></i> Pay Freight Invoice ($@((Model.freightCharges + Model.surchargeAmount).ToString("N2")))
+            </a>
+        }
+        @if (User.IsInRole("Consignee") && Model.demurrageAmount > 0 && (Model.demurrageStatus == InvoiceStatus.ISSUED || Model.demurrageStatus == InvoiceStatus.OVERDUE))
+        {
+            <a href="/FreightInvoice/Pay?id=@Model.invoiceId" class="btn btn-danger btn-sm">
+                <i class="fas fa-credit-card me-1"></i> Pay Demurrage ($@Model.demurrageAmount.ToString("N2"))
+            </a>
+        }
+    </div>
+</div>
+
+<!-- Print-Ready Invoice layout -->
+<div class="invoice-container bg-white p-4 p-md-5 border rounded shadow-sm">
+    <!-- Header row -->
+    <div class="row align-items-start mb-4">
+        <div class="col-sm-6">
+            <h4 class="fw-bold text-primary mb-0"><i class="fas fa-ship me-2"></i>CargoCaptain Corp</h4>
+            <div class="text-muted small mt-2">
+                Ocean Carriers & Port Logistics Terminal Ltd.<br />
+                Terminals Quay 44, Port of Rotterdam<br />
+                billing@cargocaptain.com
+            </div>
+        </div>
+        <div class="col-sm-6 text-sm-end mt-3 mt-sm-0">
+            <h3 class="fw-bold text-dark text-uppercase mb-1">Freight Invoice</h3>
+            <div class="small text-muted mb-2">Invoice No: <strong class="text-dark">@Model.invoiceNumber</strong></div>
+            <div class="d-flex flex-column align-items-sm-end gap-1 mt-2">
+                <div class="small">
+                    <span class="fw-semibold">Freight Status:</span>
+                    @if (Model.invoiceStatus == InvoiceStatus.DRAFT)
+                    {
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary p-1">DRAFT</span>
+                    }
+                    else if (Model.invoiceStatus == InvoiceStatus.ISSUED)
+                    {
+                        <span class="badge bg-warning bg-opacity-10 text-warning p-1">ISSUED</span>
+                    }
+                    else if (Model.invoiceStatus == InvoiceStatus.PAID)
+                    {
+                        <span class="badge bg-success bg-opacity-10 text-success p-1">PAID</span>
+                    }
+                    else if (Model.invoiceStatus == InvoiceStatus.OVERDUE)
+                    {
+                        <span class="badge bg-danger bg-opacity-10 text-danger p-1">OVERDUE</span>
+                    }
+                </div>
+                @if (Model.demurrageAmount > 0)
+                {
+                    <div class="small">
+                        <span class="fw-semibold">Demurrage Status:</span>
+                        @if (Model.demurrageStatus == InvoiceStatus.DRAFT)
+                        {
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary p-1">DRAFT</span>
+                        }
+                        else if (Model.demurrageStatus == InvoiceStatus.ISSUED)
+                        {
+                            <span class="badge bg-warning bg-opacity-10 text-warning p-1">ISSUED</span>
+                        }
+                        else if (Model.demurrageStatus == InvoiceStatus.PAID)
+                        {
+                            <span class="badge bg-success bg-opacity-10 text-success p-1">PAID</span>
+                        }
+                        else if (Model.demurrageStatus == InvoiceStatus.OVERDUE)
+                        {
+                            <span class="badge bg-danger bg-opacity-10 text-danger p-1">OVERDUE</span>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <hr />
+
+    <!-- Meta Details Row -->
+    <div class="row g-3 my-3">
+        <!-- Billing Details -->
+        <div class="col-md-6 text-start">
+            <span class="text-muted small d-block">Billed To (Shipper)</span>
+            <strong class="text-dark d-block">@Model.ShipmentBooking?.shipperName</strong>
+            <span class="text-muted small">Consignee Party: <strong>@Model.ShipmentBooking?.consigneeName</strong></span>
+        </div>
+        
+        <!-- Shipment Reference -->
+        <div class="col-md-6 text-md-end text-start">
+            <span class="text-muted small d-block">Shipment Parameters</span>
+            <div class="small">Booking Ref: <strong class="text-dark">@Model.ShipmentBooking?.bookingNumber</strong></div>
+            <div class="small">Route: <strong class="text-dark">@Model.ShipmentBooking?.originPort &rarr; @Model.ShipmentBooking?.destinationPort</strong></div>
+            <div class="small">Booking Date: <span class="text-muted">@Model.ShipmentBooking?.bookingDate.ToString("yyyy-MM-dd")</span></div>
+            @if (Model.paymentDate != null)
+            {
+                <div class="small text-success mt-1">Freight Paid: <strong>@Model.paymentDate?.ToString("yyyy-MM-dd HH:mm")</strong></div>
+            }
+            @if (Model.demurragePaymentDate != null)
+            {
+                <div class="small text-danger mt-1">Demurrage Paid: <strong>@Model.demurragePaymentDate?.ToString("yyyy-MM-dd HH:mm")</strong></div>
+            }
+        </div>
+    </div>
+
+    <!-- Charges Table -->
+    <div class="table-responsive my-4">
+        <table class="table table-bordered align-middle">
+            <thead class="table-light text-start">
+                <tr>
+                    <th>Charge Description</th>
+                    <th>Weight / Allocation basis</th>
+                    <th class="text-end">Unit Price</th>
+                    <th class="text-end">Amount (USD)</th>
+                </tr>
+            </thead>
+            <tbody class="text-start">
+                <!-- Ocean Freight Charges -->
+                <tr>
+                    <td>
+                        <strong class="text-dark">Ocean Freight Charges</strong> <span class="badge bg-light text-primary border border-primary-subtle small ms-2">Billed to Shipper</span>
+                        <div class="text-muted small">Standard Carrier tariff computed on total shipment weight.</div>
+                    </td>
+                    <td>@Model.ShipmentBooking?.cargoWeight.ToString("N2") Tons</td>
+                    <td class="text-end">$300.00 / Ton</td>
+                    <td class="text-end fw-semibold">$@Model.freightCharges.ToString("N2")</td>
+                </tr>
+
+                <!-- Surcharges -->
+                <tr>
+                    <td>
+                        <strong class="text-dark">Operational Surcharges</strong> <span class="badge bg-light text-primary border border-primary-subtle small ms-2">Billed to Shipper</span>
+                        <div class="text-muted small">Carrier port staging and security surcharges per container.</div>
+                    </td>
+                    <td>@Model.ShipmentBooking?.Containers?.Count Containers</td>
+                    <td class="text-end">$150.00 / Cont.</td>
+                    <td class="text-end fw-semibold">$@Model.surchargeAmount.ToString("N2")</td>
+                </tr>
+
+                <!-- Demurrage charges -->
+                <tr>
+                    <td>
+                        <strong class="text-dark">Terminal Demurrage Fees</strong> <span class="badge bg-light text-danger border border-danger-subtle small ms-2">Billed to Consignee</span>
+                        <div class="text-muted small">Staging storage fees (incurred after first 3 free terminal days).</div>
+                    </td>
+                    <td>Based on port milestones</td>
+                    <td class="text-end">$50.00 / Day</td>
+                    <td class="text-end fw-semibold text-danger">$@Model.demurrageAmount.ToString("N2")</td>
+                </tr>
+
+                <!-- Summary Row -->
+                <tr class="table-light">
+                    <td colspan="3" class="text-end fw-bold fs-6">Net Payable Total (@Model.currency):</td>
+                    <td class="text-end fw-bold fs-5 text-primary">$@Model.totalAmount.ToString("N2")</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer Disclaimers -->
+    <div class="border-top pt-3 text-muted small text-center">
+        Terms of Payment: 14 Days Net. All payments processed securely on CargoCaptain terminal vaults.<br />
+        Thank you for your business!
+    </div>
+</div>

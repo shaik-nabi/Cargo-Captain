@@ -1,0 +1,183 @@
+@model CargoCaptain.ViewModels.ShipperDashboardViewModel
+
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "Shipper Dashboard";
+}
+
+<!-- Breadcrumbs Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Shipper Console</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+            </ol>
+        </nav>
+        <h2 class="h3 mb-0 fw-bold text-dark">Welcome to your Shipper Console</h2>
+    </div>
+    
+    <a href="/ShipmentBooking/Create" class="btn btn-primary-custom d-inline-flex align-items-center gap-2">
+        <i class="fas fa-plus"></i>
+        <span>Book Shipment</span>
+    </a>
+</div>
+
+<!-- TempData Alerts -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- KPI Cards -->
+<div class="row g-4 mb-4">
+    <!-- Card 1: Total Bookings -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <span class="metric-title">Total Bookings</span>
+                <h3 class="metric-value mb-0 mt-1">@Model.TotalBookings</h3>
+            </div>
+            <div class="metric-icon-box bg-primary bg-opacity-10 text-primary">
+                <i class="fas fa-file-contract fa-lg"></i>
+            </div>
+        </div>
+    </div>
+    <!-- Card 2: Pending Bookings -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <span class="metric-title">Pending Bookings</span>
+                <h3 class="metric-value mb-0 mt-1">@Model.PendingBookings</h3>
+            </div>
+            <div class="metric-icon-box bg-warning bg-opacity-10 text-warning">
+                <i class="far fa-hourglass fa-lg"></i>
+            </div>
+        </div>
+    </div>
+    <!-- Card 3: Confirmed Bookings -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <span class="metric-title">Confirmed Bookings</span>
+                <h3 class="metric-value mb-0 mt-1">@Model.ConfirmedBookings</h3>
+            </div>
+            <div class="metric-icon-box bg-success bg-opacity-10 text-success">
+                <i class="fas fa-check-circle fa-lg"></i>
+            </div>
+        </div>
+    </div>
+    <!-- Card 4: Cancelled Bookings -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <span class="metric-title">Cancelled Bookings</span>
+                <h3 class="metric-value mb-0 mt-1">@Model.CancelledBookings</h3>
+            </div>
+            <div class="metric-icon-box bg-danger bg-opacity-10 text-danger">
+                <i class="fas fa-times-circle fa-lg"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Recent Bookings Table -->
+    <div class="col-lg-8">
+        <div class="premium-table-card shadow-sm h-100">
+            <h5 class="fw-bold text-dark mb-3"><i class="fas fa-list text-primary me-2"></i>Recent shipment Bookings</h5>
+            
+            @if (Model.RecentBookings != null && Model.RecentBookings.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Booking Number</th>
+                                <th>Consignee</th>
+                                <th>Route</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var b in Model.RecentBookings)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-primary">@b.bookingNumber</td>
+                                    <td>@b.consigneeName</td>
+                                    <td style="font-size: 0.8rem;">
+                                        <div><strong>From:</strong> @b.originPort</div>
+                                        <div><strong>To:</strong> @b.destinationPort</div>
+                                    </td>
+                                    <td>@b.bookingDate.ToString("yyyy-MM-dd")</td>
+                                    <td>
+                                        @if (b.bookingStatus == CargoCaptain.Enums.BookingStatus.PENDING)
+                                        {
+                                            <span class="badge bg-warning bg-opacity-10 text-warning p-2">PENDING</span>
+                                        }
+                                        else if (b.bookingStatus == CargoCaptain.Enums.BookingStatus.CONFIRMED)
+                                        {
+                                            <span class="badge bg-success bg-opacity-10 text-success p-2">CONFIRMED</span>
+                                        }
+                                        else if (b.bookingStatus == CargoCaptain.Enums.BookingStatus.CANCELLED)
+                                        {
+                                            <span class="badge bg-danger bg-opacity-10 text-danger p-2">CANCELLED</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary p-2">@b.bookingStatus</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="/ShipmentBooking/Details/@b.bookingId" class="btn btn-manage btn-sm">Manage</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-shipping-fast fa-3x mb-3 text-opacity-25 text-primary"></i>
+                    <h5 class="fw-bold text-dark">No Active Shipment Bookings</h5>
+                    <p class="small text-muted mb-4">You have not registered any cargo shipping orders yet.</p>
+                    <a href="/ShipmentBooking/Create" class="btn btn-primary-custom btn-sm">Book Your First Shipment</a>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Recent Activity Side Column -->
+    <div class="col-lg-4">
+        <div class="bg-white p-4 border rounded-3 shadow-sm h-100">
+            <h5 class="fw-bold text-dark mb-3"><i class="fas fa-history text-primary me-2"></i>Recent Activity</h5>
+            
+            @if (Model.RecentActivities != null && Model.RecentActivities.Any())
+            {
+                <ul class="list-group list-group-flush small">
+                    @foreach (var log in Model.RecentActivities)
+                    {
+                        <li class="list-group-item px-0 py-3 d-flex gap-2">
+                            <i class="fas fa-info-circle text-primary mt-1"></i>
+                            <div>@log</div>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="far fa-bell fa-2x mb-2 text-opacity-50"></i>
+                    <div class="small">No recent notifications.</div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

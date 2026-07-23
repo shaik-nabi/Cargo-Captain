@@ -1,0 +1,97 @@
+@model CargoCaptain.Models.Container
+
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "Container History";
+}
+
+<!-- Breadcrumbs Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Console</a></li>
+                <li class="breadcrumb-item"><a href="/PortOperator/Containers" class="text-decoration-none">Terminal Logs</a></li>
+                <li class="breadcrumb-item active" aria-current="page">History Log</li>
+            </ol>
+        </nav>
+        <h2 class="h3 mb-0 fw-bold text-dark">Audit History Log: @Model.containerNumber</h2>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Container Particulars Summary card -->
+    <div class="col-lg-4">
+        <div class="bg-white p-4 border rounded-3 shadow-sm h-100">
+            <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-cube text-primary me-2"></i>Container Details</h5>
+            
+            <div class="d-flex flex-column gap-3 small">
+                <div>
+                    <span class="text-muted d-block">Container Number</span>
+                    <strong class="text-dark fs-6">@Model.containerNumber</strong>
+                </div>
+                <div>
+                    <span class="text-muted d-block">Seal Number</span>
+                    <strong class="text-dark fs-6">@Model.sealNumber</strong>
+                </div>
+                <div>
+                    <span class="text-muted d-block">Container Type</span>
+                    <strong class="text-dark">@Model.containerType</strong>
+                </div>
+                <div>
+                    <span class="text-muted d-block">Physical Staging Status</span>
+                    <span class="badge bg-light text-dark border p-2 mt-1">@Model.containerStatus</span>
+                </div>
+                <div class="border-top pt-2">
+                    <span class="text-muted d-block">Linked Booking</span>
+                    <strong class="text-primary fs-6">@Model.ShipmentBooking?.bookingNumber</strong>
+                </div>
+                <div>
+                    <span class="text-muted d-block">Shipper / Consignee</span>
+                    <div class="text-dark"><strong>Shipper:</strong> @Model.ShipmentBooking?.shipperName</div>
+                    <div class="text-dark"><strong>Consignee:</strong> @Model.ShipmentBooking?.consigneeName</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeline Audit log -->
+    <div class="col-lg-8">
+        <div class="bg-white p-4 border rounded-3 shadow-sm h-100">
+            <h5 class="fw-bold text-dark border-bottom pb-2 mb-4"><i class="fas fa-history text-primary me-2"></i>Milestone Tracking logs</h5>
+            
+            @if (Model.CargoEvents != null && Model.CargoEvents.Any())
+            {
+                <div class="milestone-timeline text-start">
+                    @foreach (var me in Model.CargoEvents.OrderBy(e => e.eventTimestamp))
+                    {
+                        <div class="timeline-item pb-4 position-relative border-start ps-4 ms-3" style="border-left: 2px solid #e2e8f0 !important;">
+                            <div class="timeline-marker position-absolute rounded-circle bg-primary" style="width: 14px; height: 14px; left: -8px; top: 4px;"></div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="badge bg-light text-dark border p-2">@me.eventType</span>
+                                <span class="small text-muted">@me.eventTimestamp.ToString("yyyy-MM-dd HH:mm")</span>
+                            </div>
+                            
+                            <div class="small mb-1 text-dark"><strong>Location:</strong> @me.eventLocation</div>
+                            <div class="small text-muted mb-1"><strong>Recorded By:</strong> @me.recordedBy</div>
+                            
+                            @if (!string.IsNullOrWhiteSpace(me.remarks))
+                            {
+                                <div class="bg-light p-2 rounded small border text-muted">@me.remarks</div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-route fa-3x mb-3 text-opacity-25 text-primary"></i>
+                    <h5 class="fw-bold text-dark">No milestones recorded.</h5>
+                    <p class="small text-muted mb-0">Events logged by port terminal operators will display here.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,208 @@
+@model CargoCaptain.ViewModels.InvoiceDashboardViewModel
+@using CargoCaptain.Enums
+
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "Billing Dashboard";
+    var bookings = ViewBag.ConfirmedBookings as List<CargoCaptain.Models.ShipmentBooking> ?? new List<CargoCaptain.Models.ShipmentBooking>();
+}
+
+<!-- Breadcrumbs Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Console</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Billing Dashboard</li>
+            </ol>
+        </nav>
+        <h2 class="h3 mb-0 fw-bold text-dark">Freight Invoicing Console</h2>
+    </div>
+</div>
+
+<!-- TempData Alerts -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- KPI Cards -->
+<div class="row g-4 mb-4">
+    <!-- Card 1: Paid Revenue -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <span class="metric-title">Paid Revenue</span>
+                <h3 class="metric-value mb-0 mt-1">$@Model.PaidRevenue.ToString("N2")</h3>
+            </div>
+            <div class="metric-icon-box bg-success bg-opacity-10 text-success">
+                <i class="fas fa-wallet fa-lg"></i>
+            </div>
+        </div>
+    </div>
+    <!-- Card 2: Outstanding Revenue -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <span class="metric-title">Outstanding Revenue</span>
+                <h3 class="metric-value mb-0 mt-1">$@Model.OutstandingRevenue.ToString("N2")</h3>
+            </div>
+            <div class="metric-icon-box bg-warning bg-opacity-10 text-warning">
+                <i class="fas fa-funnel-dollar fa-lg"></i>
+            </div>
+        </div>
+    </div>
+    <!-- Card 3: Paid Invoices -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <span class="metric-title">Paid Invoices</span>
+                <h3 class="metric-value mb-0 mt-1">@Model.PaidInvoicesCount</h3>
+            </div>
+            <div class="metric-icon-box bg-primary bg-opacity-10 text-primary">
+                <i class="fas fa-file-invoice fa-lg"></i>
+            </div>
+        </div>
+    </div>
+    <!-- Card 4: Unpaid Invoices -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div>
+                <span class="metric-title">Unpaid Invoices</span>
+                <h3 class="metric-value mb-0 mt-1">@Model.UnpaidInvoicesCount</h3>
+            </div>
+            <div class="metric-icon-box bg-secondary bg-opacity-10 text-secondary">
+                <i class="far fa-file-invoice fa-lg"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Invoice List Table (Left / Main) -->
+    <div class="col-lg-8">
+        <div class="premium-table-card shadow-sm h-100">
+            <h5 class="fw-bold text-dark mb-3"><i class="fas fa-receipt text-primary me-2"></i>Invoice Ledger</h5>
+            
+            @if (Model.RecentInvoices != null && Model.RecentInvoices.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Invoice Number</th>
+                                <th>Booking Number</th>
+                                <th>Total Amount</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var inv in Model.RecentInvoices)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-dark">@inv.invoiceNumber</td>
+                                    <td class="text-primary">@inv.ShipmentBooking?.bookingNumber</td>
+                                    <td class="fw-bold text-dark">$@inv.totalAmount.ToString("N2")</td>
+                                    <td>
+                                        @if (inv.invoiceStatus == InvoiceStatus.DRAFT)
+                                        {
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary p-2">DRAFT</span>
+                                        }
+                                        else if (inv.invoiceStatus == InvoiceStatus.ISSUED)
+                                        {
+                                            <span class="badge bg-warning bg-opacity-10 text-warning p-2">ISSUED</span>
+                                        }
+                                        else if (inv.invoiceStatus == InvoiceStatus.PAID)
+                                        {
+                                            <span class="badge bg-success bg-opacity-10 text-success p-2">PAID</span>
+                                        }
+                                        else if (inv.invoiceStatus == InvoiceStatus.OVERDUE)
+                                        {
+                                            <span class="badge bg-danger bg-opacity-10 text-danger p-2">OVERDUE</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <a href="/FreightInvoice/Details?id=@inv.invoiceId" class="btn btn-light btn-sm border" title="Review Invoice">
+                                                <i class="fas fa-eye me-1"></i> View
+                                            </a>
+                                            @if (User.IsInRole("FreightForwarder") && inv.invoiceStatus == InvoiceStatus.DRAFT)
+                                            {
+                                                <form method="post" asp-controller="FreightInvoice" asp-action="Issue" asp-route-id="@inv.invoiceId" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-primary-custom btn-sm">Issue</button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-file-invoice-dollar fa-3x mb-3 text-opacity-25 text-primary"></i>
+                    <h5 class="fw-bold text-dark">No Invoices Found</h5>
+                    <p class="small text-muted mb-0">Use the billing generator panel to create invoice drafts.</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Billing Generator Panel (Right Column) -->
+    <div class="col-lg-4">
+        <div class="bg-white p-4 border rounded-3 shadow-sm h-100">
+            <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-calculator text-primary me-2"></i>Invoice Generator</h5>
+            <p class="text-muted small">Confirmed shipments that have reached their port milestones and have customs clearance are eligible for billing:</p>
+            
+            @if (User.IsInRole("FreightForwarder"))
+            {
+                @if (bookings != null && bookings.Any(b => b.FreightInvoice == null))
+                {
+                    <div class="d-flex flex-column gap-3">
+                        @foreach (var b in bookings.Where(b => b.FreightInvoice == null))
+                        {
+                            <div class="border p-3 rounded bg-light">
+                                <div class="fw-bold text-dark small">@b.bookingNumber</div>
+                                <div class="text-muted small mb-2">Weight: @b.cargoWeight Tons / Containers: @b.Containers.Count</div>
+                                
+                                <form method="post" asp-controller="FreightInvoice" asp-action="Generate" asp-route-bookingId="@b.bookingId">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-primary-custom btn-sm w-100">Generate Invoice</button>
+                                </form>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-check-circle fa-2x mb-2 text-success text-opacity-50"></i>
+                        <div class="small">No Bookings Awaiting Invoice Generation</div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="alert alert-secondary text-center small mb-0">
+                    <i class="fas fa-lock me-2 text-muted"></i>
+                    <span>Only Freight Forwarders are authorized to generate new cargo invoices.</span>
+                </div>
+            }
+        </div>
+    </div>
+</div>

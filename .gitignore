@@ -1,0 +1,36 @@
+## Ignore Visual Studio temporary files, build results, and user settings
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa]rm/
+[Aa]rm64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Log]s/
+[Tt]est[Rr]esults/
+
+# Visual Studio 2015/2017/2019/2022 cache templates
+.vs/
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.useroverride
+*.userosscache
+*.sln.docstates
+
+# Mono Class Library
+*.pidb
+*.resources
+*.testresult
+
+# Operating System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store

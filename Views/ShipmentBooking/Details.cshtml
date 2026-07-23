@@ -1,0 +1,320 @@
+@model CargoCaptain.ViewModels.BookingDetailsViewModel
+@using CargoCaptain.Enums
+
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "Booking Details";
+}
+
+<!-- Breadcrumbs Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="/ShipmentBooking" class="text-decoration-none">Shipper Console</a></li>
+                <li class="breadcrumb-item"><a href="/ShipmentBooking" class="text-decoration-none">Bookings</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Details</li>
+            </ol>
+        </nav>
+        <h2 class="h3 mb-0 fw-bold text-dark">Booking: @Model.Booking.bookingNumber</h2>
+    </div>
+    
+    <div class="d-flex gap-2">
+        @if (Model.Booking.bookingStatus == BookingStatus.PENDING)
+        {
+            <a href="/ShipmentBooking/Edit/@Model.Booking.bookingId" class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1">
+                <i class="far fa-edit"></i> Edit
+            </a>
+            
+            <form method="post" asp-controller="ShipmentBooking" asp-action="Cancel" asp-route-id="@Model.Booking.bookingId" onsubmit="return confirm('Are you sure you want to cancel this booking?');" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1">
+                    <i class="fas fa-ban"></i> Cancel
+                </button>
+            </form>
+        }
+        
+        @if (Model.Booking.bookingStatus == BookingStatus.CONFIRMED)
+        {
+            <a href="/ShipmentBooking/BillOfLading/@Model.Booking.bookingId" target="_blank" class="btn btn-primary-custom btn-sm d-flex align-items-center gap-2">
+                <i class="fas fa-print"></i> Print Bill of Lading
+            </a>
+        }
+    </div>
+</div>
+
+<!-- TempData Alerts -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- Left Column: Booking Overview -->
+    <div class="col-lg-4">
+        <div class="bg-white p-4 border rounded-3 shadow-sm mb-4">
+            <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-info-circle text-primary me-2"></i>Booking Overview</h5>
+            <div class="d-flex flex-column gap-3">
+                <div>
+                    <span class="text-muted small d-block">Booking Status</span>
+                    @if (Model.Booking.bookingStatus == BookingStatus.PENDING)
+                    {
+                        <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 mt-1">PENDING</span>
+                    }
+                    else if (Model.Booking.bookingStatus == BookingStatus.CONFIRMED)
+                    {
+                        <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 mt-1">CONFIRMED</span>
+                    }
+                    else if (Model.Booking.bookingStatus == BookingStatus.CANCELLED)
+                    {
+                        <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 mt-1">CANCELLED</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2 mt-1">@Model.Booking.bookingStatus</span>
+                    }
+                </div>
+                <div>
+                    <span class="text-muted small d-block">Shipper Client</span>
+                    <span class="fw-bold text-dark">@Model.Booking.shipperName</span>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">Consignee Client</span>
+                    <span class="fw-bold text-dark">@Model.Booking.consigneeName</span>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">Routing Ports</span>
+                    <div class="mt-1 small">
+                        <div><i class="fas fa-arrow-circle-right text-primary me-1"></i><strong>POL:</strong> @Model.Booking.originPort</div>
+                        <div class="mt-1"><i class="fas fa-arrow-circle-left text-success me-1"></i><strong>POD:</strong> @Model.Booking.destinationPort</div>
+                    </div>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">Departure Date</span>
+                    <span class="fw-bold text-dark">@Model.Booking.bookingDate.ToString("yyyy-MM-dd")</span>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">Cargo Weight</span>
+                    <span class="fw-bold text-dark">@Model.Booking.cargoWeight.ToString("N2") Metric Tons</span>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">Cargo Description</span>
+                    <p class="text-muted small mb-0 leading-normal" style="max-height: 120px; overflow-y: auto;">@Model.Booking.cargoDescription</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Detail Tabs -->
+    <div class="col-lg-8">
+        <div class="bg-white p-4 border rounded-3 shadow-sm h-100">
+            <!-- Navigation Tabs -->
+            <ul class="nav nav-tabs mb-4" id="bookingTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active fw-bold small" id="containers-tab" data-bs-toggle="tab" data-bs-target="#containers" type="button" role="tab" aria-controls="containers" aria-selected="true">
+                        <i class="fas fa-cubes me-1"></i> Containers (@Model.Containers.Count)
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-bold small" id="tracking-tab" data-bs-toggle="tab" data-bs-target="#tracking" type="button" role="tab" aria-controls="tracking" aria-selected="false">
+                        <i class="fas fa-route me-1"></i> Cargo Tracking Timeline
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-bold small" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab" aria-controls="documents" aria-selected="false">
+                        <i class="fas fa-file-upload me-1"></i> Documents Upload
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-bold small" id="invoice-tab" data-bs-toggle="tab" data-bs-target="#invoice" type="button" role="tab" aria-controls="invoice" aria-selected="false">
+                        <i class="fas fa-file-invoice-dollar me-1"></i> Invoice Info
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Contents -->
+            <div class="tab-content" id="bookingTabContent">
+                
+                <!-- 1. Containers Tab -->
+                <div class="tab-pane fade show active" id="containers" role="tabpanel" aria-labelledby="containers-tab">
+                    @if (Model.Containers != null && Model.Containers.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0 text-start" style="font-size: 0.9rem;">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Container No</th>
+                                        <th>Type</th>
+                                        <th>Seal No</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var c in Model.Containers)
+                                    {
+                                        <tr>
+                                            <td class="fw-bold text-dark">@c.containerNumber</td>
+                                            <td>@c.containerType</td>
+                                            <td>@c.sealNumber</td>
+                                            <td>
+                                                <span class="badge bg-light text-dark border p-2">@c.containerStatus</span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <i class="fas fa-boxes fa-2x mb-2 text-opacity-50"></i>
+                            <div>No containers allocated yet.</div>
+                        </div>
+                    }
+                </div>
+
+                <!-- 2. Cargo Tracking Timeline Tab -->
+                <div class="tab-pane fade" id="tracking" role="tabpanel" aria-labelledby="tracking-tab">
+                    @if (Model.TrackingEvents != null && Model.TrackingEvents.Any())
+                    {
+                        <div class="position-relative ps-4 ms-2" style="border-left: 2px solid #e2e8f0;">
+                            @foreach (var ev in Model.TrackingEvents)
+                            {
+                                <div class="position-relative mb-4">
+                                    <!-- Node marker -->
+                                    <div class="position-absolute bg-primary rounded-circle" style="width: 12px; height: 12px; left: -29px; top: 4px; border: 2px solid #ffffff;"></div>
+                                    <div class="small fw-bold text-dark">@ev.eventType - @ev.eventLocation</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;"><i class="far fa-clock me-1"></i>@ev.eventTimestamp.ToString("yyyy-MM-dd HH:mm UTC")</div>
+                                    @if (!string.IsNullOrWhiteSpace(ev.remarks))
+                                    {
+                                        <p class="text-muted small mb-0 mt-1 italic">Remarks: @ev.remarks</p>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <i class="fas fa-map-marked-alt fa-2x mb-2 text-opacity-50"></i>
+                            <div>No tracking information available.</div>
+                        </div>
+                    }
+                </div>
+
+                <!-- 3. Documents Upload Tab -->
+                <div class="tab-pane fade" id="documents" role="tabpanel" aria-labelledby="documents-tab">
+                    <!-- Upload trigger form -->
+                    <form method="post" asp-controller="ShipmentBooking" asp-action="UploadDocument" enctype="multipart/form-data" class="row g-3 mb-4 align-items-center">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="bookingId" value="@Model.Booking.bookingId" />
+                        
+                        <div class="col-md-8">
+                            <label class="form-label small fw-bold">Select Cargo/Compliance Document</label>
+                            <input type="file" name="file" class="form-control form-control-sm" required />
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end" style="height: 100%;">
+                            <button type="submit" class="btn btn-primary btn-sm px-3 mt-4">Upload File</button>
+                        </div>
+                        <div class="form-text small text-muted">Allowed formats: PDF, JPG, PNG, DOCX. Max file size: 5MB.</div>
+                    </form>
+
+                    <!-- Documents list -->
+                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Uploaded Documents Map</h6>
+                    @if (Model.UploadedDocuments != null && Model.UploadedDocuments.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Original File Name</th>
+                                        <th>Upload Date</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var doc in Model.UploadedDocuments)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <i class="far fa-file-alt text-primary me-2"></i>@doc.OriginalName
+                                            </td>
+                                            <td style="font-size: 0.8rem;">@doc.UploadTimestamp.ToString("yyyy-MM-dd HH:mm UTC")</td>
+                                            <td class="text-end">
+                                                <a href="/uploads/bookings/@Model.Booking.bookingId/@doc.GuidName" target="_blank" class="btn btn-light btn-sm border" download="@doc.OriginalName">
+                                                    <i class="fas fa-download"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-muted">
+                            <i class="far fa-folder-open fa-2x mb-2 text-opacity-50"></i>
+                            <div class="small">No files uploaded.</div>
+                        </div>
+                    }
+                </div>
+
+                <!-- 4. Freight Invoice Tab -->
+                <div class="tab-pane fade" id="invoice" role="tabpanel" aria-labelledby="invoice-tab">
+                    @if (Model.Invoice != null)
+                    {
+                        <div class="border rounded p-4 bg-light">
+                            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                                <h6 class="fw-bold mb-0 text-dark">Invoice ID: INV-@Model.Invoice.invoiceId</h6>
+                                <span class="badge bg-success bg-opacity-10 text-success p-2">@Model.Invoice.invoiceStatus</span>
+                            </div>
+                            <div class="row g-3 small">
+                                <div class="col-sm-6">
+                                    <span class="text-muted">Freight Charges</span>
+                                    <div class="fw-bold text-dark">@Model.Invoice.currency @Model.Invoice.freightCharges.ToString("N2")</div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <span class="text-muted">Surcharges</span>
+                                    <div class="fw-bold text-dark">@Model.Invoice.currency @Model.Invoice.surchargeAmount.ToString("N2")</div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <span class="text-muted">Demurrage</span>
+                                    <div class="fw-bold text-dark">@Model.Invoice.currency @Model.Invoice.demurrageAmount.ToString("N2")</div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <span class="text-muted">Total Amount Due</span>
+                                    <div class="fw-bold text-primary">@Model.Invoice.currency @Model.Invoice.totalAmount.ToString("N2")</div>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-end">
+                                <a href="/ShipmentBooking/Invoice/@Model.Booking.bookingId" target="_blank" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-receipt me-1"></i> Print Invoice Details
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <i class="fas fa-file-invoice-dollar fa-2x mb-2 text-opacity-50"></i>
+                            <div>Invoice not yet generated.</div>
+                        </div>
+                    }
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,124 @@
+@model IEnumerable<CargoCaptain.Models.ShipmentBooking>
+
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "Master Bookings File";
+    var activeFilter = ViewBag.ActiveFilter as string ?? "all";
+}
+
+<!-- Breadcrumbs Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Console</a></li>
+                <li class="breadcrumb-item"><a href="/Container" class="text-decoration-none">Container Ops</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Master Bookings</li>
+            </ol>
+        </nav>
+        <h2 class="h3 mb-0 fw-bold text-dark">Master Bookings Directory</h2>
+    </div>
+</div>
+
+<!-- TempData Alerts -->
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Filtering Bar -->
+<div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 border rounded-3 shadow-sm">
+    <div class="d-flex gap-2">
+        <a href="/Container/MasterBookings?filter=all" class="btn btn-sm @(activeFilter == "all" ? "btn-primary" : "btn-light border") px-3">All Bookings</a>
+        <a href="/Container/MasterBookings?filter=pending" class="btn btn-sm @(activeFilter == "pending" ? "btn-warning text-white" : "btn-light border") px-3">Pending Allocations</a>
+        <a href="/Container/MasterBookings?filter=completed" class="btn btn-sm @(activeFilter == "completed" ? "btn-success" : "btn-light border") px-3">Completed Allocations</a>
+    </div>
+    <span class="small text-muted">Total records displayed: <strong>@Model.Count()</strong></span>
+</div>
+
+<!-- Bookings Table -->
+<div class="premium-table-card shadow-sm">
+    @if (Model != null && Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
+                <thead class="table-light">
+                    <tr>
+                        <th>Booking Number</th>
+                        <th>Shipper</th>
+                        <th>Consignee</th>
+                        <th>Route</th>
+                        <th>Status</th>
+                        <th>Containers</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var b in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold text-primary">@b.bookingNumber</td>
+                            <td>@b.shipperName</td>
+                            <td>@b.consigneeName</td>
+                            <td style="font-size: 0.8rem;">
+                                <div><strong>From:</strong> @b.originPort</div>
+                                <div><strong>To:</strong> @b.destinationPort</div>
+                            </td>
+                            <td>
+                                @if (b.bookingStatus == CargoCaptain.Enums.BookingStatus.PENDING)
+                                {
+                                    <span class="badge bg-warning bg-opacity-10 text-warning p-2">PENDING</span>
+                                }
+                                else if (b.bookingStatus == CargoCaptain.Enums.BookingStatus.CONFIRMED)
+                                {
+                                    <span class="badge bg-success bg-opacity-10 text-success p-2">CONFIRMED</span>
+                                }
+                                else if (b.bookingStatus == CargoCaptain.Enums.BookingStatus.CANCELLED)
+                                {
+                                    <span class="badge bg-danger bg-opacity-10 text-danger p-2">CANCELLED</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary p-2">@b.bookingStatus</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="fw-bold @(b.Containers.Any() ? "text-success" : "text-muted")">
+                                    <i class="fas fa-box me-1"></i>@b.Containers.Count
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-2">
+                                    @if (b.bookingStatus != CargoCaptain.Enums.BookingStatus.CANCELLED && b.bookingStatus != CargoCaptain.Enums.BookingStatus.COMPLETED)
+                                    {
+                                        <a href="/Container/Allocate?bookingId=@b.bookingId" class="btn btn-outline-primary btn-sm" title="Allocate Container">
+                                            <i class="fas fa-plus-circle me-1"></i> Allocate
+                                        </a>
+                                    }
+                                    
+                                    @if (b.Containers.Any())
+                                    {
+                                        <a href="/Container/VesselManifest?bookingId=@b.bookingId" target="_blank" class="btn btn-light btn-sm border" title="Vessel Manifest">
+                                            <i class="fas fa-print me-1"></i> Manifest
+                                        </a>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="fas fa-folder-open fa-3x mb-3 text-opacity-25 text-primary"></i>
+            <h4>No Bookings Matching Criteria</h4>
+            <p class="small text-muted mb-0">Try changing status filters or verify customer guest registrations.</p>
+        </div>
+    }
+</div>
