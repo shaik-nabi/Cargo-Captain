@@ -75,10 +75,6 @@ namespace CargoCaptain.Controllers
                 ModelState.AddModelError("destinationPort", "Origin Port and Destination Port cannot be the same.");
             }
 
-            if (model.bookingDate.Date < DateTime.UtcNow.Date)
-            {
-                ModelState.AddModelError("bookingDate", "Desired departure date cannot be in the past.");
-            }
 
             if (!ModelState.IsValid)
             {
@@ -179,11 +175,6 @@ namespace CargoCaptain.Controllers
             if (model.originPort?.Trim().ToLower() == model.destinationPort?.Trim().ToLower())
             {
                 ModelState.AddModelError("destinationPort", "Origin Port and Destination Port cannot be the same.");
-            }
-
-            if (model.bookingDate.Date < DateTime.UtcNow.Date)
-            {
-                ModelState.AddModelError("bookingDate", "Desired departure date cannot be in the past.");
             }
 
             if (!ModelState.IsValid)

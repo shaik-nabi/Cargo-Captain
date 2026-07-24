@@ -36,7 +36,6 @@ builder.Services.AddScoped<ICustomsService, CustomsService>();
 builder.Services.AddScoped<IPortOperatorService, PortOperatorService>();
 builder.Services.AddScoped<ITrackingService, TrackingService>();
 builder.Services.AddScoped<IFreightInvoiceService, FreightInvoiceService>();
-builder.Services.AddScoped<IReportsService, ReportsService>();
 
 // 5. Register MVC Services (Controllers with Views)
 builder.Services.AddControllersWithViews();
@@ -88,11 +87,6 @@ app.MapControllerRoute(
     name: "trackingSearch",
     pattern: "Tracking/Search",
     defaults: new { controller = "Tracking", action = "Search" });
-
-app.MapControllerRoute(
-    name: "reportsConsole",
-    pattern: "Reports",
-    defaults: new { controller = "Reports", action = "Index" });
 
 app.MapControllerRoute(
     name: "invoiceDashboard",

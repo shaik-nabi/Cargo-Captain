@@ -167,10 +167,7 @@ namespace CargoCaptain.Services
             {
                 throw new ArgumentException("Cargo description is required.");
             }
-            if (booking.bookingDate.Date < DateTime.UtcNow.Date)
-            {
-                throw new ArgumentException("Booking date cannot be in the past.");
-            }
+            
         }
 
         private string GenerateBookingNumber()

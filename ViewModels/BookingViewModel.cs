@@ -32,9 +32,9 @@ namespace CargoCaptain.ViewModels
         [Display(Name = "Cargo Description")]
         public string cargoDescription { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Booking Date is required.")]
+        [Required(ErrorMessage = "Booking/Departure Date is required.")]
         [DataType(DataType.Date)]
-        [Display(Name = "Desired Departure Date")]
-        public DateTime bookingDate { get; set; } = DateTime.UtcNow.AddDays(1);
+        [Display(Name = "Departure Date")]
+        public DateTime bookingDate { get; set; } = DateTime.Today;
     }
 }
