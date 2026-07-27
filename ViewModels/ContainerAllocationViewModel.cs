@@ -12,6 +12,10 @@ namespace CargoCaptain.ViewModels
 
         public string? bookingNumber { get; set; }
 
+        public string? cargoDescription { get; set; }
+
+        public decimal cargoWeight { get; set; }
+
         [Required(ErrorMessage = "Container Number is required.")]
         [RegularExpression(@"^[A-Z]{4}\d{7}$", ErrorMessage = "Container number must be in standard prefix format (e.g. MSCU1234567).")]
         [Display(Name = "Container Number")]

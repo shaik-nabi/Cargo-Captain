@@ -42,6 +42,13 @@
         <div class="bg-white p-4 border rounded-3 shadow-sm mb-4">
             <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-plus-circle text-primary me-2"></i>Allocate Container</h5>
             
+            <!-- Booking Info Card -->
+            <div class="alert alert-secondary py-2 px-3 small border mb-3 text-start">
+                <div><i class="fas fa-info-circle me-1 text-primary"></i> <strong>Booking Cargo Manifest:</strong></div>
+                <div class="mt-1">Cargo Type: <strong class="text-dark">@Model.cargoDescription</strong></div>
+                <div>Weight: <strong class="text-dark">@Model.cargoWeight.ToString("N2") Tons</strong></div>
+            </div>
+            
             <form method="post" asp-controller="Container" asp-action="Allocate">
                 @Html.AntiForgeryToken()
                 <input type="hidden" asp-for="bookingId" />

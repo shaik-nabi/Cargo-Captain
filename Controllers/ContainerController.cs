@@ -86,6 +86,8 @@ namespace CargoCaptain.Controllers
             {
                 bookingId = booking.bookingId,
                 bookingNumber = booking.bookingNumber,
+                cargoDescription = booking.cargoDescription,
+                cargoWeight = booking.cargoWeight,
                 AllocatedContainers = booking.Containers.ToList()
             };
 
@@ -104,6 +106,8 @@ namespace CargoCaptain.Controllers
 
             // Populate existing containers list to render in view even on errors
             model.bookingNumber = booking.bookingNumber;
+            model.cargoDescription = booking.cargoDescription;
+            model.cargoWeight = booking.cargoWeight;
             model.AllocatedContainers = booking.Containers.ToList();
 
             if (!ModelState.IsValid)

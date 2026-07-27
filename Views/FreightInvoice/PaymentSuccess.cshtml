@@ -33,7 +33,7 @@
                 <hr />
                 <div class="d-flex justify-content-between mb-0 fs-5 text-primary fw-bold">
                     <span>Total Paid</span>
-                    <span>$@Model.totalAmount.ToString("N2") USD</span>
+                    <span>$@(User.IsInRole("Consignee") ? Model.demurrageAmount.ToString("N2") : (Model.freightCharges + Model.surchargeAmount).ToString("N2")) USD</span>
                 </div>
             </div>
 

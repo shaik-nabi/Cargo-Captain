@@ -181,10 +181,25 @@
                     <td class="text-end fw-semibold text-danger">$@Model.demurrageAmount.ToString("N2")</td>
                 </tr>
 
+                @if (Model.demurrageStatus == InvoiceStatus.PAID)
+                {
+                    <tr>
+                        <td>
+                            <strong class="text-dark">Demurrage Paid</strong> <span class="badge bg-light text-success border border-success-subtle small ms-2">Paid by Consignee</span>
+                            <div class="text-muted small">Terminal demurrage fees paid by the consignee.</div>
+                        </td>
+                        <td>-</td>
+                        <td class="text-end">-</td>
+                        <td class="text-end fw-semibold text-success">(-$@Model.demurrageAmount.ToString("N2"))</td>
+                    </tr>
+                }
+
                 <!-- Summary Row -->
                 <tr class="table-light">
                     <td colspan="3" class="text-end fw-bold fs-6">Net Payable Total (@Model.currency):</td>
-                    <td class="text-end fw-bold fs-5 text-primary">$@Model.totalAmount.ToString("N2")</td>
+                    <td class="text-end fw-bold fs-5 text-primary">
+                        $@(Model.demurrageStatus == InvoiceStatus.PAID ? (Model.totalAmount - Model.demurrageAmount).ToString("N2") : Model.totalAmount.ToString("N2"))
+                    </td>
                 </tr>
             </tbody>
         </table>

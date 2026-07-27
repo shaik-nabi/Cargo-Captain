@@ -23,6 +23,7 @@ namespace CargoCaptain.Services
         {
             return await _context.FreightInvoices
                 .Include(fi => fi.ShipmentBooking)
+                    .ThenInclude(sb => sb.Containers)
                 .OrderByDescending(fi => fi.invoiceId)
                 .ToListAsync();
         }
@@ -31,6 +32,7 @@ namespace CargoCaptain.Services
         {
             return await _context.FreightInvoices
                 .Include(fi => fi.ShipmentBooking)
+                    .ThenInclude(sb => sb.Containers)
                 .Where(fi => fi.ShipmentBooking != null && fi.ShipmentBooking.userId == shipperUserId)
                 .OrderByDescending(fi => fi.invoiceId)
                 .ToListAsync();
@@ -40,6 +42,7 @@ namespace CargoCaptain.Services
         {
             return await _context.FreightInvoices
                 .Include(fi => fi.ShipmentBooking)
+                    .ThenInclude(sb => sb.Containers)
                 .FirstOrDefaultAsync(fi => fi.invoiceId == id);
         }
 
@@ -47,6 +50,7 @@ namespace CargoCaptain.Services
         {
             return await _context.FreightInvoices
                 .Include(fi => fi.ShipmentBooking)
+                    .ThenInclude(sb => sb.Containers)
                 .FirstOrDefaultAsync(fi => fi.bookingId == bookingId);
         }
 

@@ -94,7 +94,10 @@
                             @foreach (var b in Model.RecentBookings)
                             {
                                 <tr>
-                                    <td class="fw-bold text-primary">@b.bookingNumber</td>
+                                    <td class="fw-bold text-primary">
+                                        @b.bookingNumber
+                                        <div class="text-muted small fw-normal mt-1">Cargo: <strong>@b.cargoDescription</strong></div>
+                                    </td>
                                     <td style="font-size: 0.78rem;">
                                         <div><strong>From:</strong> @b.originPort</div>
                                         <div><strong>To:</strong> @b.destinationPort</div>

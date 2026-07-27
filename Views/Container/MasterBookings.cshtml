@@ -60,7 +60,10 @@
                     @foreach (var b in Model)
                     {
                         <tr>
-                            <td class="fw-bold text-primary">@b.bookingNumber</td>
+                            <td class="fw-bold text-primary">
+                                @b.bookingNumber
+                                <div class="text-muted small fw-normal mt-1">Cargo: <strong>@b.cargoDescription</strong></div>
+                            </td>
                             <td>@b.shipperName</td>
                             <td>@b.consigneeName</td>
                             <td style="font-size: 0.8rem;">
